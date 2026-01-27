@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EventPass v7.0 (Excel Final)</title>
+    <title>EventPass v8.0 Pro</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -11,44 +11,63 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <style>
-        body { background-color: #f8fafc; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
+        body { background-color: #0f172a; color: white; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
         .hide { display: none !important; }
         
         /* Animaciones */
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Tabla Excel */
-        .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .excel-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: monospace; min-width: 600px; } 
+        /* Estilos Tabla Excel (Admin) */
+        .table-container { overflow-x: auto; background: white; border-radius: 8px; }
+        .excel-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: monospace; color: #333; min-width: 600px; } 
         .excel-table th { background: #e2e8f0; padding: 10px; text-align: left; position: sticky; top: 0; font-weight: bold; text-transform: uppercase; color: #475569; }
         .excel-table td { border-bottom: 1px solid #e2e8f0; padding: 10px; color: #334155; }
-        .excel-table tr:nth-child(even) { background-color: #f1f5f9; }
+        .excel-table tr:nth-child(even) { background-color: #f8fafc; }
 
-        /* Botones Listas */
-        .btn-list.active { background: white; color: #0f172a; border: 1px solid #cbd5e1; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .btn-list { color: #64748b; border: 1px solid transparent; }
+        /* ESCÁNER PRO UI */
+        #reader { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; overflow: hidden; }
+        #reader video { object-fit: cover; width: 100% !important; height: 100% !important; border-radius: 12px; }
+        
+        /* Láser de escaneo */
+        .scan-laser {
+            position: absolute; width: 100%; height: 2px; background: rgba(239, 68, 68, 0.8);
+            box-shadow: 0 0 4px red; top: 0; z-index: 20;
+            animation: scan 2s infinite linear;
+        }
+        @keyframes scan { 0% {top: 10%;} 50% {top: 90%;} 100% {top: 10%;} }
+
+        /* Esquinas del visor */
+        .corner { position: absolute; width: 30px; height: 30px; border: 4px solid rgba(255,255,255,0.7); z-index: 20; border-radius: 4px; }
+        .tl { top: 20px; left: 20px; border-right: 0; border-bottom: 0; }
+        .tr { top: 20px; right: 20px; border-left: 0; border-bottom: 0; }
+        .bl { bottom: 20px; left: 20px; border-right: 0; border-top: 0; }
+        .br { bottom: 20px; right: 20px; border-left: 0; border-top: 0; }
+
+        /* Botones Admin */
+        .btn-list.active { background: #3b82f6; color: white; border: none; font-weight: bold; }
+        .btn-list { background: #1e293b; color: #94a3b8; }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden text-slate-800">
+<body class="h-screen flex flex-col overflow-hidden bg-slate-900">
 
-    <header class="bg-white border-b px-4 py-3 flex justify-between items-center z-20 shadow-sm shrink-0">
+    <header class="bg-slate-800 border-b border-slate-700 px-4 py-3 flex justify-between items-center z-30 shrink-0">
         <div class="flex items-center gap-2">
-            <i class="ph-fill ph-ticket text-blue-600 text-2xl"></i>
+            <i class="ph-fill ph-qr-code text-blue-500 text-2xl"></i>
             <div>
-                <h1 class="font-bold text-sm leading-none">EventPass</h1>
+                <h1 class="font-bold text-sm leading-none text-white">EventPass Pro</h1>
                 <span id="status-dot" class="text-[10px] text-orange-500 font-bold uppercase">● Conectando...</span>
             </div>
         </div>
-        <div class="bg-slate-100 p-1 rounded-lg flex text-xs font-semibold">
-            <button onclick="window.setMode('admin')" id="nav-admin" class="px-4 py-1.5 rounded shadow bg-white text-blue-700">Admin</button>
-            <button onclick="window.setMode('scanner')" id="nav-scanner" class="px-4 py-1.5 rounded text-slate-500">Scanner</button>
+        <div class="bg-slate-700 p-1 rounded-lg flex text-xs font-semibold">
+            <button onclick="window.setMode('admin')" id="nav-admin" class="px-4 py-1.5 rounded text-slate-400">Admin</button>
+            <button onclick="window.setMode('scanner')" id="nav-scanner" class="px-4 py-1.5 rounded shadow bg-blue-600 text-white">Scanner</button>
         </div>
     </header>
 
     <main class="flex-1 overflow-hidden relative">
 
-        <div id="view-admin" class="w-full h-full flex flex-col bg-slate-50 fade-in">
+        <div id="view-admin" class="hide w-full h-full flex flex-col bg-slate-50 fade-in text-slate-800">
             
             <div class="flex overflow-x-auto bg-white border-b shrink-0 px-2">
                 <button onclick="window.setTab('dashboard')" id="tab-dashboard" class="flex-1 py-3 text-xs font-bold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap px-4">📊 Resumen</button>
@@ -56,8 +75,7 @@
                 <button onclick="window.setTab('listas')" id="tab-listas" class="flex-1 py-3 text-xs font-medium text-slate-500 border-b-2 border-transparent whitespace-nowrap px-4">✅ Control</button>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-4 pb-20">
-                
+            <div class="flex-1 overflow-y-auto p-4 pb-20 bg-slate-50">
                 <div id="content-dashboard" class="space-y-4">
                     <div class="grid grid-cols-3 gap-2">
                         <div class="bg-white p-3 rounded-xl border shadow-sm text-center">
@@ -75,34 +93,21 @@
                     </div>
 
                     <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                        <h3 class="font-bold text-blue-800 text-sm mb-2">📥 Cargar Base de Datos</h3>
-                        <p class="text-xs text-blue-600/80 mb-3">Sube tu archivo <strong>Acceso1.xlsx</strong>.</p>
-                        <input type="file" id="fileInput" class="w-full text-xs bg-white p-2 rounded border border-blue-200 mb-3">
-                        <button onclick="window.uploadData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded shadow transition">Procesar Archivo</button>
+                        <h3 class="font-bold text-blue-800 text-sm mb-2">📥 Cargar Datos (Excel)</h3>
+                        <p class="text-xs text-blue-600/80 mb-3">Archivo: <strong>Acceso1.xlsx</strong></p>
+                        <input type="file" id="fileInput" class="w-full text-xs bg-white p-2 rounded border border-blue-200 mb-3 text-slate-600">
+                        <button onclick="window.uploadData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded shadow transition">Procesar Excel</button>
                     </div>
                     
-                    <div class="text-center">
-                        <button onclick="window.clearDb()" class="text-red-400 text-xs underline mt-2">Borrar base de datos</button>
-                    </div>
+                    <button onclick="window.clearDb()" class="w-full text-center text-red-400 text-xs underline mt-2">Limpiar Base de Datos</button>
                 </div>
 
                 <div id="content-excel" class="hide h-full flex flex-col">
-                    <input type="text" id="search-box" onkeyup="window.searchTable()" placeholder="🔍 Buscar ID, nombre..." class="w-full p-2 mb-3 rounded border shadow-sm text-sm">
-                    
-                    <div class="flex-1 bg-white border rounded-lg shadow-sm table-container">
+                    <input type="text" id="search-box" onkeyup="window.searchTable()" placeholder="🔍 Buscar..." class="w-full p-2 mb-3 rounded border shadow-sm text-sm">
+                    <div class="flex-1 table-container border shadow-sm">
                         <table class="excel-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Email</th>
-                                    <th>Tel</th>
-                                    <th>Cant.</th>
-                                    <th>Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-body">
-                                </tbody>
+                            <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Tel</th><th>Cant.</th><th>Estado</th></tr></thead>
+                            <tbody id="table-body"></tbody>
                         </table>
                     </div>
                 </div>
@@ -112,76 +117,80 @@
                         <button onclick="window.switchList('out')" id="btn-out" class="btn-list active flex-1 py-2 rounded-md text-xs uppercase tracking-wider">Pendientes</button>
                         <button onclick="window.switchList('in')" id="btn-in" class="btn-list flex-1 py-2 rounded-md text-xs uppercase tracking-wider">Dentro</button>
                     </div>
-                    
                     <div id="list-out" class="space-y-2"></div>
                     <div id="list-in" class="space-y-2 hidden"></div>
                 </div>
-
             </div>
         </div>
 
-        <div id="view-scanner" class="hide w-full h-full bg-slate-900 flex flex-col items-center justify-start p-4 pt-6 relative overflow-y-auto">
+        <div id="view-scanner" class="w-full h-full flex flex-col items-center pt-6 px-4 bg-slate-900 relative">
             
-            <div class="relative w-full max-w-sm aspect-square bg-black rounded-xl overflow-hidden border-2 border-slate-600 mb-6 shrink-0 shadow-lg">
-                <div id="reader" class="w-full h-full object-cover"></div>
-                <div id="cam-overlay" class="absolute inset-0 z-10 bg-slate-900 flex flex-col items-center justify-center p-6 text-center">
-                    <i class="ph-duotone ph-camera text-4xl text-slate-500 mb-2"></i>
-                    <p class="text-slate-400 text-xs mb-4">Cámara en espera</p>
-                    <button onclick="window.startCamera()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-6 rounded-full text-sm border border-slate-500 transition hover:scale-105">
-                        📷 Activar Cámara
+            <div class="relative w-full max-w-sm aspect-[3/4] bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-700">
+                
+                <div id="reader" class="w-full h-full bg-black"></div>
+
+                <div id="scan-ui" class="absolute inset-0 hidden pointer-events-none">
+                    <div class="corner tl"></div><div class="corner tr"></div>
+                    <div class="corner bl"></div><div class="corner br"></div>
+                    <div class="scan-laser"></div>
+                    <div class="absolute bottom-4 w-full text-center text-white/70 text-xs font-mono uppercase tracking-widest">Escaneando...</div>
+                </div>
+
+                <div id="cam-overlay" class="absolute inset-0 z-20 bg-slate-900 flex flex-col items-center justify-center p-6 text-center">
+                    <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4 shadow-lg animate-pulse">
+                        <i class="ph-duotone ph-camera text-3xl text-blue-400"></i>
+                    </div>
+                    <h2 class="text-white font-bold text-lg mb-2">Modo Escáner</h2>
+                    <p class="text-slate-400 text-xs mb-6">Se activará la cámara trasera.</p>
+                    <button onclick="window.startCamera()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:scale-105">
+                        INICIAR CÁMARA
                     </button>
                 </div>
             </div>
 
-            <div class="w-full max-w-sm bg-slate-800 p-5 rounded-xl shadow-lg border border-slate-700">
-                <h3 class="font-bold text-white text-sm flex items-center gap-2 mb-3">
-                    <i class="ph-fill ph-keyboard text-blue-400"></i> Entrada Manual
-                </h3>
-                <p class="text-[11px] text-slate-400 mb-3 leading-tight">Si el QR falla, escribe el ID del participante para validarlo.</p>
-                <div class="flex gap-2">
-                    <input type="text" id="manual-input" placeholder="ID (ej: 001)" class="flex-1 p-3 rounded-lg bg-slate-900 border border-slate-600 text-white text-sm font-bold focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 placeholder-slate-600">
-                    <button onclick="window.manualValidate()" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-blue-500 transition shadow-lg">
-                        VALIDAR
+            <div class="w-full max-w-sm mt-6">
+                <div class="bg-slate-800/50 p-1 rounded-xl flex gap-2 border border-slate-700 backdrop-blur-sm">
+                    <input type="text" id="manual-input" placeholder="Escribir ID manual..." class="flex-1 bg-transparent text-white px-4 py-3 text-sm font-mono focus:outline-none placeholder-slate-500">
+                    <button onclick="window.manualValidate()" class="bg-slate-700 hover:bg-slate-600 text-white px-6 rounded-lg font-bold text-sm transition">
+                        OK
                     </button>
                 </div>
             </div>
 
-            <button onclick="window.location.reload()" class="mt-8 text-slate-600 text-xs underline">Recargar App</button>
-
-            <div id="scan-popup" class="hidden absolute bottom-0 left-0 w-full bg-white rounded-t-3xl p-6 shadow-2xl z-50 fade-in">
+            <div id="scan-popup" class="hidden absolute bottom-0 left-0 w-full bg-white rounded-t-3xl p-6 shadow-2xl z-50 fade-in text-slate-900">
                 <div class="text-center">
                     <div id="res-icon" class="text-6xl mb-2"></div>
                     <h2 id="res-title" class="text-2xl font-black uppercase mb-1"></h2>
                     <p id="res-msg" class="text-sm text-slate-500 mb-4"></p>
                     
-                    <div class="bg-slate-50 p-4 rounded-xl border mb-4 text-left">
+                    <div class="bg-slate-100 p-4 rounded-xl border mb-4 text-left">
                         <div class="flex justify-between items-start">
                             <div>
-                                <div class="text-[10px] uppercase text-slate-400 font-bold">Participante</div>
+                                <div class="text-[10px] uppercase text-slate-400 font-bold">Nombre</div>
                                 <div id="res-name" class="font-bold text-lg text-slate-900 leading-tight"></div>
                             </div>
                             <div class="text-right">
                                 <div class="text-[10px] uppercase text-slate-400 font-bold">Entradas</div>
-                                <div id="res-qty" class="font-black text-xl text-blue-600 leading-none">1</div>
+                                <div id="res-qty" class="font-black text-2xl text-blue-600 leading-none">1</div>
                             </div>
                         </div>
-                        <div id="res-info" class="text-xs text-slate-500 mt-2 font-mono border-t pt-2 mt-2"></div>
+                        <div id="res-info" class="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-200"></div>
                     </div>
 
                     <button onclick="window.nextScan()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-black transition">
-                        Aceptar / Siguiente
+                        SIGUIENTE
                     </button>
                 </div>
             </div>
-        </div>
 
+        </div>
     </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, writeBatch, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-        // FIREBASE CONFIG
+        // CONFIGURACIÓN FIREBASE
         const app = initializeApp({
             apiKey: "AIzaSyCZfaK9ZzKqU2Kp8xa9Y9IghpHicpJCXzc",
             authDomain: "controlacceso-766c6.firebaseapp.com",
@@ -192,14 +201,15 @@
         });
         const db = getFirestore(app);
         const colRef = collection(db, "participantes");
-        
-        document.getElementById('status-dot').innerText = "● CONECTADO";
+
+        document.getElementById('status-dot').innerText = "● LINEA";
         document.getElementById('status-dot').className = "text-[10px] text-green-500 font-bold uppercase";
 
-        let scanner = null;
+        // VARIABLES GLOBALES
+        let html5QrCode = null; // Instancia Pro
         let isProcessing = false;
 
-        // --- NAVEGACION ---
+        // --- NAVEGACIÓN ---
         window.setMode = (mode) => {
             const adminV = document.getElementById('view-admin');
             const scanV = document.getElementById('view-scanner');
@@ -209,14 +219,15 @@
             if(mode === 'admin') {
                 adminV.classList.remove('hide');
                 scanV.classList.add('hide');
-                navA.className = "px-4 py-1.5 rounded shadow bg-white text-blue-700 font-bold";
-                navS.className = "px-4 py-1.5 rounded text-slate-500";
-                if(scanner) { scanner.clear(); scanner = null; document.getElementById('cam-overlay').classList.remove('hidden'); }
+                navA.className = "px-4 py-1.5 rounded shadow bg-blue-600 text-white font-bold";
+                navS.className = "px-4 py-1.5 rounded text-slate-400";
+                stopCamera();
             } else {
                 adminV.classList.add('hide');
                 scanV.classList.remove('hide');
-                navS.className = "px-4 py-1.5 rounded shadow bg-white text-blue-700 font-bold";
-                navA.className = "px-4 py-1.5 rounded text-slate-500";
+                navS.className = "px-4 py-1.5 rounded shadow bg-blue-600 text-white font-bold";
+                navA.className = "px-4 py-1.5 rounded text-slate-400";
+                // No iniciar cámara auto, esperar click del usuario
             }
         };
 
@@ -243,59 +254,90 @@
             }
         };
 
-        // --- ENTRADA MANUAL (REAL) ---
+        // --- LÓGICA CÁMARA PRO (Html5Qrcode API) ---
+        window.startCamera = () => {
+            if(html5QrCode) return; // Ya iniciada
+
+            document.getElementById('cam-overlay').classList.add('hidden');
+            document.getElementById('scan-ui').classList.remove('hidden');
+
+            // Instancia modo PRO (sin UI por defecto)
+            html5QrCode = new Html5Qrcode("reader");
+
+            const config = { 
+                fps: 10, 
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0 
+            };
+            
+            // Forzar cámara trasera: { facingMode: "environment" }
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                config, 
+                procesarCodigo, 
+                (errorMessage) => { /* Ignorar errores de frame vacío */ }
+            ).catch(err => {
+                console.error("Error iniciando cámara", err);
+                alert("Error: No se pudo acceder a la cámara trasera. Asegúrate de estar en HTTPS y dar permisos.");
+                stopCamera();
+            });
+        };
+
+        function stopCamera() {
+            if(html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    html5QrCode = null;
+                }).catch(err => console.error(err));
+            }
+            document.getElementById('cam-overlay').classList.remove('hidden');
+            document.getElementById('scan-ui').classList.add('hidden');
+        }
+
+        // --- VALIDACIÓN ---
         window.manualValidate = () => {
             const input = document.getElementById('manual-input');
             const id = input.value.trim();
-            if(!id) return alert("Escribe un ID primero");
-            
-            // Usamos la misma lógica que el escáner
+            if(!id) return;
             procesarCodigo(id);
-            input.value = ""; 
+            input.value = "";
         };
 
-        // --- CÁMARA ---
-        window.startCamera = () => {
-            if(scanner) return;
-            document.getElementById('cam-overlay').classList.add('hidden');
-            scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
-            scanner.render(procesarCodigo, (err) => {});
-        };
-
-        // --- LÓGICA DE VALIDACIÓN ---
         async function procesarCodigo(decodedText) {
             if(isProcessing) return;
             isProcessing = true;
-            if(scanner) scanner.pause();
+            
+            if(html5QrCode) {
+                html5QrCode.pause(); // Congelar cámara
+            }
 
             const id = String(decodedText).trim();
             document.getElementById('scan-popup').classList.remove('hidden');
 
-            // Estado de carga visual
+            // UI Cargando
             document.getElementById('res-icon').innerText = "⏳";
-            document.getElementById('res-title').innerText = "Buscando...";
+            document.getElementById('res-title').innerText = "BUSCANDO...";
             document.getElementById('res-title').className = "text-xl font-bold text-slate-500";
             document.getElementById('res-name').innerText = id;
             document.getElementById('res-qty').innerText = "-";
-            document.getElementById('res-info').innerText = "Consultando base de datos...";
+            document.getElementById('res-info').innerText = "Verificando en base de datos...";
 
             try {
                 const docRef = doc(db, "participantes", id);
                 const snap = await getDoc(docRef);
 
                 if(!snap.exists()) {
-                    mostrarResultado('error', 'No Existe', id, 'Este ID no está registrado.', 0);
+                    mostrarResultado('error', 'NO EXISTE', id, 'ID no encontrado en el sistema.', 0);
                 } else {
                     const data = snap.data();
-                    const qty = data.cantidad || 1; // Por defecto 1 si no hay dato
+                    const qty = data.cantidad || 1;
                     
                     if(data.estado === 'VALIDADO') {
                         let h = data.hora_entrada ? data.hora_entrada.toDate().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '?';
-                        mostrarResultado('warn', 'Ya Entró', data.nombre, `Entró previamente a las ${h}`, qty);
+                        mostrarResultado('warn', 'YA ACCEDIÓ', data.nombre, `Entró a las ${h}`, qty);
                     } else {
-                        // VALIDACIÓN OK
                         await updateDoc(docRef, { estado: 'VALIDADO', hora_entrada: serverTimestamp() });
-                        mostrarResultado('success', 'Bienvenido', data.nombre, data.email || "Acceso Autorizado", qty);
+                        mostrarResultado('success', 'BIENVENIDO', data.nombre, data.email, qty);
                     }
                 }
             } catch(e) {
@@ -315,39 +357,36 @@
 
             if(type === 'success') {
                 icon.innerText = '✅';
-                tit.innerText = title;
                 tit.className = "text-2xl font-black uppercase mb-1 text-green-600";
                 playTone(600, 100); setTimeout(()=>playTone(800, 100), 100);
             } else if (type === 'warn') {
                 icon.innerText = '⚠️';
-                tit.innerText = title;
                 tit.className = "text-2xl font-black uppercase mb-1 text-yellow-500";
                 playTone(300, 300);
             } else {
                 icon.innerText = '⛔';
-                tit.innerText = title;
                 tit.className = "text-2xl font-black uppercase mb-1 text-red-600";
-                playTone(200, 400);
+                playTone(150, 400);
             }
+            tit.innerText = title;
         }
 
         window.nextScan = () => {
             document.getElementById('scan-popup').classList.add('hidden');
             isProcessing = false;
-            if(scanner) scanner.resume();
+            if(html5QrCode) html5QrCode.resume(); // Reanudar cámara
         };
-        
-        function playTone(freq, duration) {
+
+        function playTone(freq, dur) {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = ctx.createOscillator();
-                osc.type = 'sine'; osc.frequency.value = freq;
-                osc.connect(ctx.destination); osc.start();
-                setTimeout(() => osc.stop(), duration);
+                osc.type='sine'; osc.frequency.value=freq; osc.connect(ctx.destination);
+                osc.start(); setTimeout(()=>osc.stop(), dur);
             } catch(e){}
         }
 
-        // --- SUBIDA EXCEL (CORREGIDO PARA TILDE EN TELÉFONO) ---
+        // --- SUBIDA DE DATOS ---
         window.searchTable = () => {
             const v = document.getElementById('search-box').value.toUpperCase();
             document.querySelectorAll('#table-body tr').forEach(r => r.style.display = r.innerText.toUpperCase().includes(v)?'':'none');
@@ -355,7 +394,7 @@
 
         window.uploadData = () => {
             const input = document.getElementById('fileInput');
-            if(!input.files[0]) return alert("Selecciona un archivo");
+            if(!input.files[0]) return alert("Selecciona Acceso1.xlsx");
             const reader = new FileReader();
             reader.onload = async (e) => {
                 const data = new Uint8Array(e.target.result);
@@ -365,21 +404,19 @@
                 const batch = writeBatch(db);
                 let c=0;
                 json.forEach(row => {
-                    let obj={}; 
-                    // Normalización de claves (quita espacios, mayúsculas y acentos comunes)
+                    let obj={};
                     Object.keys(row).forEach(k => {
                         let key = k.toUpperCase().trim();
-                        if(key === 'TELÉFONO') key = 'TELEFONO';
-                        obj[key] = row[k];
+                        if(key==='TELÉFONO') key='TELEFONO';
+                        obj[key]=row[k];
                     });
-
                     if(obj.ID) {
                         const ref = doc(db, "participantes", String(obj.ID).trim());
                         batch.set(ref, {
                             nombre: obj.NOMBRE || "Sin Nombre",
                             email: obj.EMAIL || "",
                             telefono: obj.TELEFONO || "",
-                            cantidad: obj.CANTIDAD || 1, // Nuevo campo
+                            cantidad: obj.CANTIDAD || 1,
                             estado: "PENDIENTE",
                             hora_entrada: null
                         });
@@ -387,14 +424,14 @@
                     }
                 });
                 await batch.commit();
-                alert(`✅ ${c} Registros cargados con éxito.`);
+                alert(`✅ ${c} Registros importados.`);
                 window.setTab('excel');
             };
             reader.readAsArrayBuffer(input.files[0]);
         };
         
         window.clearDb = async () => {
-            if(confirm("¿Seguro de borrar TODO?")) {
+            if(confirm("⚠ ¿Borrar TODA la base de datos?")) {
                 const q = await getDocs(colRef);
                 const b = writeBatch(db);
                 q.forEach(d=>b.delete(d.ref));
@@ -402,7 +439,7 @@
             }
         };
 
-        // --- DATOS EN TIEMPO REAL ---
+        // --- REALTIME DATA ---
         onSnapshot(colRef, (snap) => {
             let total = snap.size, dent = 0, htmlT = "", htmlIn = "", htmlOut = "";
             let docs = [];
@@ -413,32 +450,25 @@
                 const tel = p.telefono || "";
                 const cant = p.cantidad || 1;
                 
-                // Tabla Excel
-                let stClass = p.estado==='VALIDADO' ? 'text-green-700 font-bold bg-green-50' : 'text-slate-400';
-                htmlT += `<tr><td class="font-bold">${p._id}</td><td>${p.nombre}</td><td class="text-xs text-slate-400">${p.email}</td><td class="text-xs">${tel}</td><td class="text-center font-bold text-blue-600">${cant}</td><td class="${stClass} text-[10px]">${p.estado}</td></tr>`;
+                // Tabla
+                let stClass = p.estado==='VALIDADO' ? 'text-green-600 font-bold bg-green-100 rounded px-1' : 'text-slate-400';
+                htmlT += `<tr>
+                    <td class="font-bold">${p._id}</td>
+                    <td>${p.nombre}</td>
+                    <td class="text-xs text-slate-500">${p.email}</td>
+                    <td class="text-xs">${tel}</td>
+                    <td class="text-center font-bold text-blue-600">${cant}</td>
+                    <td class="text-[10px]"><span class="${stClass}">${p.estado}</span></td>
+                </tr>`;
 
-                // Listas Control
+                // Listas
                 if(p.estado==='VALIDADO') {
                     dent++;
                     let time = p.hora_entrada ? p.hora_entrada.toDate().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : 'OK';
-                    htmlIn += `
-                    <div class="bg-white p-3 rounded border border-green-200 shadow-sm flex justify-between items-center">
-                        <div>
-                            <div class="font-bold text-slate-800">${p.nombre}</div>
-                            <div class="text-xs text-slate-400">ID: ${p._id} <span class="text-blue-600 font-bold ml-1">• ${cant} Entradas</span></div>
-                        </div>
-                        <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">${time}</span>
-                    </div>`;
+                    htmlIn += `<div class="bg-white p-3 rounded border border-green-200 shadow-sm flex justify-between items-center"><div><div class="font-bold text-slate-800">${p.nombre}</div><div class="text-xs text-slate-400">ID: ${p._id} • ${cant} Entradas</div></div><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">${time}</span></div>`;
                 } else {
-                    let btn = tel ? `<a href="tel:${tel}" class="w-9 h-9 flex items-center justify-center bg-green-100 text-green-700 rounded-full border border-green-200"><i class="ph-fill ph-phone-call"></i></a>` : '';
-                    htmlOut += `
-                    <div class="bg-white p-3 rounded border border-slate-200 shadow-sm flex justify-between items-center">
-                        <div>
-                            <div class="font-bold text-slate-800">${p.nombre}</div>
-                            <div class="text-xs text-slate-400">${p.email} <span class="text-blue-600 font-bold ml-1">• ${cant} Entradas</span></div>
-                        </div>
-                        ${btn}
-                    </div>`;
+                    let btn = tel ? `<a href="tel:${tel}" class="w-9 h-9 flex items-center justify-center bg-slate-100 text-slate-600 rounded-full border border-slate-200"><i class="ph-fill ph-phone-call"></i></a>` : '';
+                    htmlOut += `<div class="bg-white p-3 rounded border border-slate-200 shadow-sm flex justify-between items-center"><div><div class="font-bold text-slate-800">${p.nombre}</div><div class="text-xs text-slate-400">${p.email} • ${cant} Entradas</div></div>${btn}</div>`;
                 }
             });
 
@@ -446,10 +476,9 @@
             document.getElementById('num-dentro').innerText = dent;
             document.getElementById('num-faltan').innerText = total - dent;
             document.getElementById('table-body').innerHTML = htmlT;
-            document.getElementById('list-out').innerHTML = htmlOut || '<div class="p-4 text-center text-slate-400">Nadie pendiente</div>';
-            document.getElementById('list-in').innerHTML = htmlIn || '<div class="p-4 text-center text-slate-400">Sin ingresos</div>';
+            document.getElementById('list-out').innerHTML = htmlOut || '<div class="p-4 text-center text-slate-400 text-xs">Lista vacía</div>';
+            document.getElementById('list-in').innerHTML = htmlIn || '<div class="p-4 text-center text-slate-400 text-xs">Nadie ha entrado aún</div>';
         });
-
     </script>
 </body>
 </html>
