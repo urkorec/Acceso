@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EventPass v10.0 Compact</title>
+    <title>EventPass Optimized v11</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -92,7 +92,7 @@
                         <i class="ph-bold ph-upload-simple text-2xl text-blue-500 mb-2"></i>
                         <h3 class="font-bold text-slate-800 text-sm">Cargar Excel</h3>
                         <p class="text-xs text-slate-400 mb-3">Sube <strong>Acceso1.xlsx</strong></p>
-                        <input type="file" id="fileInput" class="hidden" onchange="window.uploadData()" accept=".xlsx,.xls">
+                        <input type="file" id="fileInput" class="hidden" onchange="window.uploadData()" accept=".xlsx,.xls,.csv">
                         <label for="fileInput" class="cursor-pointer inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 text-xs rounded-lg transition shadow-md shadow-blue-200">
                             <span>Seleccionar Archivo</span>
                         </label>
@@ -168,7 +168,6 @@
             </div>
 
             <div id="scan-popup" class="hidden absolute bottom-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:max-w-sm bg-white rounded-xl shadow-2xl z-50 slide-up p-4 border border-slate-100 flex flex-col gap-3">
-                
                 <div class="flex items-center gap-4">
                     <div id="res-icon" class="text-4xl shrink-0"></div>
                     <div class="flex-1 text-left overflow-hidden">
@@ -180,18 +179,15 @@
                         <span id="res-qty" class="text-lg font-black text-blue-600 leading-none">1</span>
                     </div>
                 </div>
-
                 <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-left">
                     <div class="text-[9px] uppercase text-slate-400 font-bold mb-0.5">Asistente</div>
                     <div id="res-name" class="font-bold text-base text-slate-800 leading-tight truncate"></div>
                     <div id="res-info" class="text-[10px] text-slate-500 mt-1 font-mono truncate"></div>
                 </div>
-
                 <button onclick="window.nextScan()" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-3 rounded-lg shadow-md active:scale-95 transition flex items-center justify-center gap-2 text-sm">
                     <span>SIGUIENTE</span> <i class="ph-bold ph-arrow-right"></i>
                 </button>
             </div>
-
         </div>
     </main>
 
@@ -199,7 +195,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, writeBatch, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-        // CONFIG
+        // FIREBASE SETUP
         const app = initializeApp({
             apiKey: "AIzaSyCZfaK9ZzKqU2Kp8xa9Y9IghpHicpJCXzc",
             authDomain: "controlacceso-766c6.firebaseapp.com",
@@ -253,20 +249,25 @@
         };
 
         window.switchList = (list) => {
+            const listOut = document.getElementById('list-out');
+            const listIn = document.getElementById('list-in');
+            const btnOut = document.getElementById('btn-out');
+            const btnIn = document.getElementById('btn-in');
+
             if(list === 'out') {
-                document.getElementById('list-out').classList.remove('hidden');
-                document.getElementById('list-in').classList.add('hidden');
-                document.getElementById('btn-out').className = "flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-white text-slate-800 shadow-sm border border-slate-100 transition-all";
-                document.getElementById('btn-in').className = "flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-slate-700 transition-all";
+                listOut.classList.remove('hidden');
+                listIn.classList.add('hidden');
+                btnOut.className = "flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-white text-slate-800 shadow-sm border border-slate-100 transition-all";
+                btnIn.className = "flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-slate-700 transition-all";
             } else {
-                document.getElementById('list-in').classList.remove('hidden');
-                document.getElementById('list-out').classList.add('hidden');
-                document.getElementById('btn-in').className = "flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-white text-green-700 shadow-sm border border-green-100 transition-all";
-                document.getElementById('btn-out').className = "flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-slate-700 transition-all";
+                listIn.classList.remove('hidden');
+                listOut.classList.add('hidden');
+                btnIn.className = "flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-white text-green-700 shadow-sm border border-green-100 transition-all";
+                btnOut.className = "flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-slate-700 transition-all";
             }
         };
 
-        // --- CÁMARA ---
+        // --- CÁMARA SEGURA ---
         window.startCamera = () => {
             if(html5QrCode) return;
             document.getElementById('cam-overlay').classList.add('hidden');
@@ -275,17 +276,17 @@
             html5QrCode = new Html5Qrcode("reader");
             const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
             
-            // Intento 1: Cámara trasera (Móvil)
+            // Intento prioritario: Trasera (Móvil)
             html5QrCode.start({ facingMode: "environment" }, config, procesarCodigo, (err) => {})
             .catch(() => {
-                // Intento 2: Cámara usuario (PC/Webcam)
+                // Fallback: Cámara usuario (PC)
                 html5QrCode.start({ facingMode: "user" }, config, procesarCodigo, (err) => {});
             });
         };
 
         function stopCamera() {
             if(html5QrCode) {
-                html5QrCode.stop().then(() => { html5QrCode.clear(); html5QrCode=null; });
+                html5QrCode.stop().then(() => { html5QrCode.clear(); html5QrCode=null; }).catch(err=>{});
             }
             document.getElementById('cam-overlay').classList.remove('hidden');
             document.getElementById('scan-ui').classList.add('hidden');
@@ -311,14 +312,14 @@
             const popup = document.getElementById('scan-popup');
             popup.classList.remove('hidden');
 
-            updatePopup('load', 'BUSCANDO...', id, 'Consultando...', '-');
+            updatePopup('load', 'BUSCANDO...', id, 'Consultando BD...', '-');
 
             try {
                 const docRef = doc(db, "participantes", id);
                 const snap = await getDoc(docRef);
 
                 if(!snap.exists()) {
-                    updatePopup('error', 'NO EXISTE', id, 'ID desconocido', 0);
+                    updatePopup('error', 'NO EXISTE', id, 'ID no encontrado.', 0);
                 } else {
                     const data = snap.data();
                     const qty = data.cantidad || 1;
@@ -333,6 +334,7 @@
                 }
             } catch(e) {
                 console.error(e);
+                alert("Error red");
                 window.nextScan();
             }
         }
@@ -369,13 +371,14 @@
         function playTone(freq, dur) {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if(ctx.state === 'suspended') ctx.resume();
                 const o = ctx.createOscillator();
                 o.type='sine'; o.frequency.value=freq; o.connect(ctx.destination);
                 o.start(); setTimeout(()=>o.stop(), dur);
             } catch(e){}
         }
 
-        // --- EXCEL ---
+        // --- UPLOAD MEJORADO (Normalizador) ---
         window.searchTable = () => {
             const v = document.getElementById('search-box').value.toUpperCase();
             document.querySelectorAll('#table-body tr').forEach(r => r.style.display = r.innerText.toUpperCase().includes(v)?'':'none');
@@ -391,13 +394,16 @@
                 const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
                 const batch = writeBatch(db);
                 let c=0;
+                
                 json.forEach(row => {
                     let obj={};
+                    // Normalizador de claves (quita tildes y espacios)
                     Object.keys(row).forEach(k => {
-                        let key = k.toUpperCase().trim();
-                        if(key==='TELÉFONO') key='TELEFONO';
-                        obj[key]=row[k];
+                        let cleanKey = k.toUpperCase().trim()
+                            .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // "TELÉFONO" -> "TELEFONO"
+                        obj[cleanKey] = row[k];
                     });
+
                     if(obj.ID) {
                         const ref = doc(db, "participantes", String(obj.ID).trim());
                         batch.set(ref, {
@@ -411,15 +417,16 @@
                         c++;
                     }
                 });
+                
                 await batch.commit();
-                alert(`✅ ${c} Registros importados.`);
+                alert(`✅ ${c} Importados correctamente.`);
                 window.setTab('excel');
             };
             reader.readAsArrayBuffer(input.files[0]);
         };
         
         window.clearDb = async () => {
-            if(confirm("⚠ ¿Borrar base de datos?")) {
+            if(confirm("⚠ ¿Borrar datos?")) {
                 const q = await getDocs(colRef);
                 const b = writeBatch(db);
                 q.forEach(d=>b.delete(d.ref));
