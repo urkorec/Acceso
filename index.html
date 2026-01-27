@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EventPass v8.0 Pro</title>
+    <title>EventPass Universal v9.0</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -11,186 +11,218 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <style>
-        body { background-color: #0f172a; color: white; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
+        /* BASE */
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         .hide { display: none !important; }
-        
-        /* Animaciones */
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Estilos Tabla Excel (Admin) */
-        .table-container { overflow-x: auto; background: white; border-radius: 8px; }
-        .excel-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: monospace; color: #333; min-width: 600px; } 
-        .excel-table th { background: #e2e8f0; padding: 10px; text-align: left; position: sticky; top: 0; font-weight: bold; text-transform: uppercase; color: #475569; }
-        .excel-table td { border-bottom: 1px solid #e2e8f0; padding: 10px; color: #334155; }
-        .excel-table tr:nth-child(even) { background-color: #f8fafc; }
+        /* SCROLLBARS PERSONALIZADAS (Más limpias en PC) */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* ESCÁNER PRO UI */
-        #reader { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; overflow: hidden; }
-        #reader video { object-fit: cover; width: 100% !important; height: 100% !important; border-radius: 12px; }
-        
-        /* Láser de escaneo */
+        /* TABLAS */
+        .excel-table { width: 100%; border-collapse: collapse; font-size: 13px; font-family: monospace; } 
+        .excel-table th { background: #f8fafc; padding: 12px; text-align: left; position: sticky; top: 0; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0; z-index: 10; }
+        .excel-table td { border-bottom: 1px solid #f1f5f9; padding: 12px; color: #334155; }
+        .excel-table tr:hover { background-color: #f8fafc; }
+
+        /* ESCÁNER UI */
+        #reader video { object-fit: cover; border-radius: 12px; }
         .scan-laser {
-            position: absolute; width: 100%; height: 2px; background: rgba(239, 68, 68, 0.8);
-            box-shadow: 0 0 4px red; top: 0; z-index: 20;
-            animation: scan 2s infinite linear;
+            position: absolute; width: 100%; height: 2px; background: #ef4444;
+            box-shadow: 0 0 10px #ef4444; top: 10%; z-index: 20;
+            animation: scan 2s infinite ease-in-out;
         }
-        @keyframes scan { 0% {top: 10%;} 50% {top: 90%;} 100% {top: 10%;} }
-
-        /* Esquinas del visor */
-        .corner { position: absolute; width: 30px; height: 30px; border: 4px solid rgba(255,255,255,0.7); z-index: 20; border-radius: 4px; }
-        .tl { top: 20px; left: 20px; border-right: 0; border-bottom: 0; }
-        .tr { top: 20px; right: 20px; border-left: 0; border-bottom: 0; }
-        .bl { bottom: 20px; left: 20px; border-right: 0; border-top: 0; }
-        .br { bottom: 20px; right: 20px; border-left: 0; border-top: 0; }
-
-        /* Botones Admin */
-        .btn-list.active { background: #3b82f6; color: white; border: none; font-weight: bold; }
-        .btn-list { background: #1e293b; color: #94a3b8; }
+        @keyframes scan { 0% {top: 10%; opacity: 0;} 50% {top: 90%; opacity: 1;} 100% {top: 10%; opacity: 0;} }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden bg-slate-900">
+<body class="h-screen flex flex-col overflow-hidden text-slate-800 bg-slate-100">
 
-    <header class="bg-slate-800 border-b border-slate-700 px-4 py-3 flex justify-between items-center z-30 shrink-0">
-        <div class="flex items-center gap-2">
-            <i class="ph-fill ph-qr-code text-blue-500 text-2xl"></i>
+    <header class="bg-white border-b border-slate-200 px-4 py-3 flex justify-between items-center z-30 shrink-0 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 p-2 rounded-lg text-white shadow-lg shadow-blue-200">
+                <i class="ph-bold ph-ticket text-xl"></i>
+            </div>
             <div>
-                <h1 class="font-bold text-sm leading-none text-white">EventPass Pro</h1>
-                <span id="status-dot" class="text-[10px] text-orange-500 font-bold uppercase">● Conectando...</span>
+                <h1 class="font-bold text-base leading-none text-slate-800">EventPass <span class="text-blue-600">Pro</span></h1>
+                <div class="flex items-center gap-1 mt-0.5">
+                    <span id="status-dot" class="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
+                    <span id="status-text" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Conectando...</span>
+                </div>
             </div>
         </div>
-        <div class="bg-slate-700 p-1 rounded-lg flex text-xs font-semibold">
-            <button onclick="window.setMode('admin')" id="nav-admin" class="px-4 py-1.5 rounded text-slate-400">Admin</button>
-            <button onclick="window.setMode('scanner')" id="nav-scanner" class="px-4 py-1.5 rounded shadow bg-blue-600 text-white">Scanner</button>
+        
+        <div class="bg-slate-100 p-1 rounded-lg flex text-xs font-semibold border border-slate-200">
+            <button onclick="window.setMode('admin')" id="nav-admin" class="px-5 py-2 rounded-md shadow-sm bg-white text-blue-700 border border-slate-100 transition-all">Admin</button>
+            <button onclick="window.setMode('scanner')" id="nav-scanner" class="px-5 py-2 rounded-md text-slate-500 hover:text-slate-700 transition-all">Escanear</button>
         </div>
     </header>
 
-    <main class="flex-1 overflow-hidden relative">
+    <main class="flex-1 overflow-hidden relative w-full max-w-5xl mx-auto bg-white shadow-2xl shadow-slate-200/50 md:border-x md:border-slate-200">
 
-        <div id="view-admin" class="hide w-full h-full flex flex-col bg-slate-50 fade-in text-slate-800">
+        <div id="view-admin" class="w-full h-full flex flex-col fade-in">
             
-            <div class="flex overflow-x-auto bg-white border-b shrink-0 px-2">
-                <button onclick="window.setTab('dashboard')" id="tab-dashboard" class="flex-1 py-3 text-xs font-bold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap px-4">📊 Resumen</button>
-                <button onclick="window.setTab('excel')" id="tab-excel" class="flex-1 py-3 text-xs font-medium text-slate-500 border-b-2 border-transparent whitespace-nowrap px-4">📑 Master Excel</button>
-                <button onclick="window.setTab('listas')" id="tab-listas" class="flex-1 py-3 text-xs font-medium text-slate-500 border-b-2 border-transparent whitespace-nowrap px-4">✅ Control</button>
+            <div class="flex border-b border-slate-100 shrink-0 bg-slate-50/50 px-2 overflow-x-auto no-scrollbar">
+                <button onclick="window.setTab('dashboard')" id="tab-dashboard" class="flex-1 md:flex-none md:w-40 py-4 text-xs font-bold text-blue-600 border-b-2 border-blue-600 px-4 transition-colors">
+                    📊 DASHBOARD
+                </button>
+                <button onclick="window.setTab('excel')" id="tab-excel" class="flex-1 md:flex-none md:w-40 py-4 text-xs font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 px-4 transition-colors">
+                    📑 BASE DE DATOS
+                </button>
+                <button onclick="window.setTab('listas')" id="tab-listas" class="flex-1 md:flex-none md:w-40 py-4 text-xs font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 px-4 transition-colors">
+                    ✅ CONTROL
+                </button>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-4 pb-20 bg-slate-50">
-                <div id="content-dashboard" class="space-y-4">
-                    <div class="grid grid-cols-3 gap-2">
-                        <div class="bg-white p-3 rounded-xl border shadow-sm text-center">
-                            <div class="text-[10px] text-slate-400 font-bold uppercase">Total</div>
-                            <div id="num-total" class="text-2xl font-black text-slate-800">0</div>
+            <div class="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50/30">
+                
+                <div id="content-dashboard" class="space-y-6 max-w-2xl mx-auto">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center">
+                            <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Total</div>
+                            <div id="num-total" class="text-3xl md:text-4xl font-black text-slate-800">0</div>
                         </div>
-                        <div class="bg-green-50 p-3 rounded-xl border border-green-200 shadow-sm text-center">
-                            <div class="text-[10px] text-green-600 font-bold uppercase">Dentro</div>
-                            <div id="num-dentro" class="text-2xl font-black text-green-600">0</div>
+                        <div class="bg-green-50 p-4 rounded-2xl border border-green-100 shadow-sm text-center">
+                            <div class="text-xs text-green-600 font-bold uppercase tracking-widest mb-1">Dentro</div>
+                            <div id="num-dentro" class="text-3xl md:text-4xl font-black text-green-600">0</div>
                         </div>
-                        <div class="bg-red-50 p-3 rounded-xl border border-red-200 shadow-sm text-center">
-                            <div class="text-[10px] text-red-500 font-bold uppercase">Faltan</div>
-                            <div id="num-faltan" class="text-2xl font-black text-red-500">0</div>
+                        <div class="bg-red-50 p-4 rounded-2xl border border-red-100 shadow-sm text-center">
+                            <div class="text-xs text-red-500 font-bold uppercase tracking-widest mb-1">Faltan</div>
+                            <div id="num-faltan" class="text-3xl md:text-4xl font-black text-red-500">0</div>
                         </div>
                     </div>
 
-                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                        <h3 class="font-bold text-blue-800 text-sm mb-2">📥 Cargar Datos (Excel)</h3>
-                        <p class="text-xs text-blue-600/80 mb-3">Archivo: <strong>Acceso1.xlsx</strong></p>
-                        <input type="file" id="fileInput" class="w-full text-xs bg-white p-2 rounded border border-blue-200 mb-3 text-slate-600">
-                        <button onclick="window.uploadData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded shadow transition">Procesar Excel</button>
+                    <div class="bg-white border-2 border-dashed border-blue-200 rounded-2xl p-6 md:p-8 text-center hover:border-blue-400 transition-colors">
+                        <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 text-blue-500">
+                            <i class="ph-bold ph-upload-simple text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 mb-1">Cargar Archivo Excel</h3>
+                        <p class="text-sm text-slate-400 mb-4">Sube <strong>Acceso1.xlsx</strong> para actualizar la lista.</p>
+                        
+                        <input type="file" id="fileInput" class="hidden" onchange="window.uploadData()" accept=".xlsx,.xls">
+                        <label for="fileInput" class="cursor-pointer inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-lg transition shadow-lg shadow-blue-200">
+                            <span>Seleccionar Archivo</span>
+                        </label>
                     </div>
                     
-                    <button onclick="window.clearDb()" class="w-full text-center text-red-400 text-xs underline mt-2">Limpiar Base de Datos</button>
+                    <button onclick="window.clearDb()" class="w-full text-center text-red-400 hover:text-red-600 text-xs font-bold uppercase tracking-wider py-4">
+                        <i class="ph-bold ph-trash"></i> Eliminar Base de Datos
+                    </button>
                 </div>
 
                 <div id="content-excel" class="hide h-full flex flex-col">
-                    <input type="text" id="search-box" onkeyup="window.searchTable()" placeholder="🔍 Buscar..." class="w-full p-2 mb-3 rounded border shadow-sm text-sm">
-                    <div class="flex-1 table-container border shadow-sm">
-                        <table class="excel-table">
-                            <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Tel</th><th>Cant.</th><th>Estado</th></tr></thead>
-                            <tbody id="table-body"></tbody>
-                        </table>
+                    <div class="flex gap-2 mb-4">
+                        <div class="relative flex-1">
+                            <i class="ph-bold ph-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
+                            <input type="text" id="search-box" onkeyup="window.searchTable()" placeholder="Buscar por Nombre, ID, Email..." class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm shadow-sm">
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+                        <div class="overflow-auto flex-1">
+                            <table class="excel-table">
+                                <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Tel</th><th class="text-center">Cant.</th><th>Estado</th></tr></thead>
+                                <tbody id="table-body"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
-                <div id="content-listas" class="hide">
-                    <div class="flex bg-slate-200 p-1 rounded-lg mb-3">
-                        <button onclick="window.switchList('out')" id="btn-out" class="btn-list active flex-1 py-2 rounded-md text-xs uppercase tracking-wider">Pendientes</button>
-                        <button onclick="window.switchList('in')" id="btn-in" class="btn-list flex-1 py-2 rounded-md text-xs uppercase tracking-wider">Dentro</button>
+                <div id="content-listas" class="hide h-full flex flex-col max-w-3xl mx-auto w-full">
+                    <div class="flex bg-slate-100 p-1 rounded-xl mb-4 border border-slate-200 shrink-0">
+                        <button onclick="window.switchList('out')" id="btn-out" class="flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-white text-slate-800 shadow-sm border border-slate-100 transition-all">
+                            Pendientes
+                        </button>
+                        <button onclick="window.switchList('in')" id="btn-in" class="flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-slate-700 transition-all">
+                            Dentro
+                        </button>
                     </div>
-                    <div id="list-out" class="space-y-2"></div>
-                    <div id="list-in" class="space-y-2 hidden"></div>
+                    
+                    <div id="list-out" class="space-y-3 overflow-y-auto pb-10"></div>
+                    <div id="list-in" class="space-y-3 overflow-y-auto pb-10 hidden"></div>
                 </div>
+
             </div>
         </div>
 
-        <div id="view-scanner" class="w-full h-full flex flex-col items-center pt-6 px-4 bg-slate-900 relative">
+        <div id="view-scanner" class="hide w-full h-full bg-slate-900 flex flex-col items-center relative">
             
-            <div class="relative w-full max-w-sm aspect-[3/4] bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-700">
+            <div class="flex-1 w-full max-w-md flex flex-col items-center justify-center p-4 relative z-10">
                 
-                <div id="reader" class="w-full h-full bg-black"></div>
-
-                <div id="scan-ui" class="absolute inset-0 hidden pointer-events-none">
-                    <div class="corner tl"></div><div class="corner tr"></div>
-                    <div class="corner bl"></div><div class="corner br"></div>
-                    <div class="scan-laser"></div>
-                    <div class="absolute bottom-4 w-full text-center text-white/70 text-xs font-mono uppercase tracking-widest">Escaneando...</div>
-                </div>
-
-                <div id="cam-overlay" class="absolute inset-0 z-20 bg-slate-900 flex flex-col items-center justify-center p-6 text-center">
-                    <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4 shadow-lg animate-pulse">
-                        <i class="ph-duotone ph-camera text-3xl text-blue-400"></i>
-                    </div>
-                    <h2 class="text-white font-bold text-lg mb-2">Modo Escáner</h2>
-                    <p class="text-slate-400 text-xs mb-6">Se activará la cámara trasera.</p>
-                    <button onclick="window.startCamera()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transition transform hover:scale-105">
-                        INICIAR CÁMARA
-                    </button>
-                </div>
-            </div>
-
-            <div class="w-full max-w-sm mt-6">
-                <div class="bg-slate-800/50 p-1 rounded-xl flex gap-2 border border-slate-700 backdrop-blur-sm">
-                    <input type="text" id="manual-input" placeholder="Escribir ID manual..." class="flex-1 bg-transparent text-white px-4 py-3 text-sm font-mono focus:outline-none placeholder-slate-500">
-                    <button onclick="window.manualValidate()" class="bg-slate-700 hover:bg-slate-600 text-white px-6 rounded-lg font-bold text-sm transition">
-                        OK
-                    </button>
-                </div>
-            </div>
-
-            <div id="scan-popup" class="hidden absolute bottom-0 left-0 w-full bg-white rounded-t-3xl p-6 shadow-2xl z-50 fade-in text-slate-900">
-                <div class="text-center">
-                    <div id="res-icon" class="text-6xl mb-2"></div>
-                    <h2 id="res-title" class="text-2xl font-black uppercase mb-1"></h2>
-                    <p id="res-msg" class="text-sm text-slate-500 mb-4"></p>
+                <div class="relative w-full aspect-[4/5] md:aspect-square bg-black rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-800">
+                    <div id="reader" class="w-full h-full object-cover"></div>
                     
-                    <div class="bg-slate-100 p-4 rounded-xl border mb-4 text-left">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <div class="text-[10px] uppercase text-slate-400 font-bold">Nombre</div>
-                                <div id="res-name" class="font-bold text-lg text-slate-900 leading-tight"></div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-[10px] uppercase text-slate-400 font-bold">Entradas</div>
-                                <div id="res-qty" class="font-black text-2xl text-blue-600 leading-none">1</div>
+                    <div id="scan-ui" class="absolute inset-0 hidden pointer-events-none">
+                        <div class="scan-laser"></div>
+                        <div class="absolute inset-0 border-[40px] border-slate-900/50"></div> <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-64 h-64 border-2 border-white/30 rounded-2xl relative">
+                                <div class="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-white rounded-tl-lg"></div>
+                                <div class="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-white rounded-tr-lg"></div>
+                                <div class="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-white rounded-bl-lg"></div>
+                                <div class="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-white rounded-br-lg"></div>
                             </div>
                         </div>
-                        <div id="res-info" class="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-200"></div>
                     </div>
 
-                    <button onclick="window.nextScan()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-black transition">
-                        SIGUIENTE
+                    <div id="cam-overlay" class="absolute inset-0 z-20 bg-slate-900 flex flex-col items-center justify-center p-6 text-center">
+                        <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-blue-900/20">
+                            <i class="ph-duotone ph-camera text-4xl text-blue-500"></i>
+                        </div>
+                        <h2 class="text-white font-bold text-xl mb-2">Modo Escáner</h2>
+                        <p class="text-slate-400 text-sm mb-8 max-w-[200px]">Usa la cámara trasera o escribe el ID manualmente.</p>
+                        <button onclick="window.startCamera()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-full shadow-lg shadow-blue-600/30 transition transform active:scale-95 flex items-center gap-2">
+                            <i class="ph-bold ph-power"></i> ACTIVAR CÁMARA
+                        </button>
+                    </div>
+                </div>
+
+                <div class="w-full mt-6 flex gap-2">
+                    <div class="flex-1 bg-slate-800/80 backdrop-blur border border-slate-700 rounded-xl flex items-center px-4 shadow-lg">
+                        <i class="ph-bold ph-keyboard text-slate-500 mr-3"></i>
+                        <input type="text" id="manual-input" onkeypress="handleEnter(event)" placeholder="Escribir ID (ej: 001)..." class="bg-transparent border-none text-white text-sm w-full py-3 focus:outline-none placeholder-slate-500 uppercase font-mono">
+                    </div>
+                    <button onclick="window.manualValidate()" class="bg-slate-700 hover:bg-slate-600 text-white w-12 rounded-xl flex items-center justify-center shadow-lg transition">
+                        <i class="ph-bold ph-arrow-right text-lg"></i>
                     </button>
                 </div>
+
             </div>
 
+            <div id="scan-popup" class="hidden absolute bottom-0 w-full max-w-md bg-white rounded-t-3xl p-6 shadow-2xl z-50 fade-in text-center pb-10">
+                <div id="res-icon" class="text-6xl mb-2"></div>
+                <h2 id="res-title" class="text-3xl font-black uppercase mb-1 tracking-tight"></h2>
+                <p id="res-msg" class="text-sm text-slate-500 mb-6 font-medium"></p>
+                
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 mb-6 text-left shadow-inner">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="text-[10px] uppercase text-slate-400 font-bold tracking-wider">Asistente</div>
+                            <div id="res-name" class="font-bold text-xl text-slate-900 leading-tight mt-0.5"></div>
+                        </div>
+                        <div class="text-right bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-sm">
+                            <div class="text-[10px] uppercase text-slate-400 font-bold">Entradas</div>
+                            <div id="res-qty" class="font-black text-xl text-blue-600 leading-none">1</div>
+                        </div>
+                    </div>
+                    <div id="res-info" class="text-xs text-slate-500 mt-3 pt-3 border-t border-slate-200 font-mono"></div>
+                </div>
+
+                <button onclick="window.nextScan()" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl shadow-xl transition transform active:scale-95 flex items-center justify-center gap-2">
+                    <span>SIGUIENTE</span> <i class="ph-bold ph-arrow-right"></i>
+                </button>
+            </div>
         </div>
+
     </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, writeBatch, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-        // CONFIGURACIÓN FIREBASE
+        // FIREBASE
         const app = initializeApp({
             apiKey: "AIzaSyCZfaK9ZzKqU2Kp8xa9Y9IghpHicpJCXzc",
             authDomain: "controlacceso-766c6.firebaseapp.com",
@@ -202,11 +234,14 @@
         const db = getFirestore(app);
         const colRef = collection(db, "participantes");
 
-        document.getElementById('status-dot').innerText = "● LINEA";
-        document.getElementById('status-dot').className = "text-[10px] text-green-500 font-bold uppercase";
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        statusDot.className = "w-2 h-2 rounded-full bg-green-500";
+        statusText.innerText = "CONECTADO";
+        statusText.className = "text-[10px] font-bold text-green-600 uppercase tracking-wider";
 
-        // VARIABLES GLOBALES
-        let html5QrCode = null; // Instancia Pro
+        // VARIABLES
+        let html5QrCode = null;
         let isProcessing = false;
 
         // --- NAVEGACIÓN ---
@@ -219,82 +254,69 @@
             if(mode === 'admin') {
                 adminV.classList.remove('hide');
                 scanV.classList.add('hide');
-                navA.className = "px-4 py-1.5 rounded shadow bg-blue-600 text-white font-bold";
-                navS.className = "px-4 py-1.5 rounded text-slate-400";
-                stopCamera();
+                navA.className = "px-5 py-2 rounded-md shadow-sm bg-blue-600 text-white font-bold border border-blue-600 transition-all";
+                navS.className = "px-5 py-2 rounded-md text-slate-500 hover:text-slate-700 transition-all";
+                if(html5QrCode) stopCamera();
             } else {
                 adminV.classList.add('hide');
                 scanV.classList.remove('hide');
-                navS.className = "px-4 py-1.5 rounded shadow bg-blue-600 text-white font-bold";
-                navA.className = "px-4 py-1.5 rounded text-slate-400";
-                // No iniciar cámara auto, esperar click del usuario
+                navS.className = "px-5 py-2 rounded-md shadow-sm bg-blue-600 text-white font-bold border border-blue-600 transition-all";
+                navA.className = "px-5 py-2 rounded-md text-slate-500 hover:text-slate-700 transition-all";
             }
         };
 
         window.setTab = (tab) => {
             ['dashboard', 'excel', 'listas'].forEach(t => {
                 document.getElementById('content-'+t).classList.add('hide');
-                document.getElementById('tab-'+t).className = "flex-1 py-3 text-xs font-medium text-slate-500 border-b-2 border-transparent whitespace-nowrap px-4";
+                const btn = document.getElementById('tab-'+t);
+                btn.className = "flex-1 md:flex-none md:w-40 py-4 text-xs font-bold text-slate-400 border-b-2 border-transparent hover:text-slate-600 px-4 transition-colors";
             });
             document.getElementById('content-'+tab).classList.remove('hide');
-            document.getElementById('tab-'+tab).className = "flex-1 py-3 text-xs font-bold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap px-4";
+            const active = document.getElementById('tab-'+tab);
+            active.className = "flex-1 md:flex-none md:w-40 py-4 text-xs font-bold text-blue-600 border-b-2 border-blue-600 px-4 transition-colors";
         };
 
         window.switchList = (list) => {
             if(list === 'out') {
                 document.getElementById('list-out').classList.remove('hidden');
                 document.getElementById('list-in').classList.add('hidden');
-                document.getElementById('btn-out').classList.add('active');
-                document.getElementById('btn-in').classList.remove('active');
+                document.getElementById('btn-out').className = "flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-white text-slate-800 shadow-sm border border-slate-100 transition-all";
+                document.getElementById('btn-in').className = "flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-slate-700 transition-all";
             } else {
                 document.getElementById('list-in').classList.remove('hidden');
                 document.getElementById('list-out').classList.add('hidden');
-                document.getElementById('btn-in').classList.add('active');
-                document.getElementById('btn-out').classList.remove('active');
+                document.getElementById('btn-in').className = "flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-white text-green-700 shadow-sm border border-green-100 transition-all";
+                document.getElementById('btn-out').className = "flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-slate-700 transition-all";
             }
         };
 
-        // --- LÓGICA CÁMARA PRO (Html5Qrcode API) ---
+        // --- CÁMARA PRO ---
         window.startCamera = () => {
-            if(html5QrCode) return; // Ya iniciada
-
+            if(html5QrCode) return;
             document.getElementById('cam-overlay').classList.add('hidden');
             document.getElementById('scan-ui').classList.remove('hidden');
 
-            // Instancia modo PRO (sin UI por defecto)
             html5QrCode = new Html5Qrcode("reader");
-
-            const config = { 
-                fps: 10, 
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0 
-            };
+            const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
             
-            // Forzar cámara trasera: { facingMode: "environment" }
-            html5QrCode.start(
-                { facingMode: "environment" }, 
-                config, 
-                procesarCodigo, 
-                (errorMessage) => { /* Ignorar errores de frame vacío */ }
-            ).catch(err => {
-                console.error("Error iniciando cámara", err);
-                alert("Error: No se pudo acceder a la cámara trasera. Asegúrate de estar en HTTPS y dar permisos.");
-                stopCamera();
+            // Intenta cámara trasera, si falla (PC), usa defecto
+            html5QrCode.start({ facingMode: "environment" }, config, procesarCodigo, (err) => {})
+            .catch(() => {
+                html5QrCode.start({ facingMode: "user" }, config, procesarCodigo, (err) => {})
             });
         };
 
         function stopCamera() {
             if(html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                    html5QrCode = null;
-                }).catch(err => console.error(err));
+                html5QrCode.stop().then(() => { html5QrCode.clear(); html5QrCode=null; });
             }
             document.getElementById('cam-overlay').classList.remove('hidden');
             document.getElementById('scan-ui').classList.add('hidden');
         }
 
         // --- VALIDACIÓN ---
+        window.handleEnter = (e) => { if(e.key === 'Enter') window.manualValidate(); };
+
         window.manualValidate = () => {
             const input = document.getElementById('manual-input');
             const id = input.value.trim();
@@ -306,38 +328,31 @@
         async function procesarCodigo(decodedText) {
             if(isProcessing) return;
             isProcessing = true;
-            
-            if(html5QrCode) {
-                html5QrCode.pause(); // Congelar cámara
-            }
+            if(html5QrCode) html5QrCode.pause();
 
             const id = String(decodedText).trim();
-            document.getElementById('scan-popup').classList.remove('hidden');
+            const popup = document.getElementById('scan-popup');
+            popup.classList.remove('hidden');
 
-            // UI Cargando
-            document.getElementById('res-icon').innerText = "⏳";
-            document.getElementById('res-title').innerText = "BUSCANDO...";
-            document.getElementById('res-title').className = "text-xl font-bold text-slate-500";
-            document.getElementById('res-name').innerText = id;
-            document.getElementById('res-qty').innerText = "-";
-            document.getElementById('res-info').innerText = "Verificando en base de datos...";
+            // Estado Cargando
+            updatePopup('load', 'BUSCANDO...', id, 'Consultando base de datos...', '-');
 
             try {
                 const docRef = doc(db, "participantes", id);
                 const snap = await getDoc(docRef);
 
                 if(!snap.exists()) {
-                    mostrarResultado('error', 'NO EXISTE', id, 'ID no encontrado en el sistema.', 0);
+                    updatePopup('error', 'NO EXISTE', id, 'ID no encontrado en el sistema.', 0);
                 } else {
                     const data = snap.data();
                     const qty = data.cantidad || 1;
                     
                     if(data.estado === 'VALIDADO') {
                         let h = data.hora_entrada ? data.hora_entrada.toDate().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '?';
-                        mostrarResultado('warn', 'YA ACCEDIÓ', data.nombre, `Entró a las ${h}`, qty);
+                        updatePopup('warn', 'YA ACCEDIÓ', data.nombre, `Entró a las ${h}`, qty);
                     } else {
                         await updateDoc(docRef, { estado: 'VALIDADO', hora_entrada: serverTimestamp() });
-                        mostrarResultado('success', 'BIENVENIDO', data.nombre, data.email, qty);
+                        updatePopup('success', 'AUTORIZADO', data.nombre, data.email, qty);
                     }
                 }
             } catch(e) {
@@ -347,46 +362,49 @@
             }
         }
 
-        function mostrarResultado(type, title, name, info, qty) {
+        function updatePopup(type, title, name, info, qty) {
             const icon = document.getElementById('res-icon');
             const tit = document.getElementById('res-title');
             
             document.getElementById('res-name').innerText = name;
             document.getElementById('res-info').innerText = info;
             document.getElementById('res-qty').innerText = qty;
+            tit.innerText = title;
 
-            if(type === 'success') {
+            if(type === 'load') {
+                icon.innerText = '⏳';
+                tit.className = "text-3xl font-black uppercase mb-1 text-slate-400";
+            } else if(type === 'success') {
                 icon.innerText = '✅';
-                tit.className = "text-2xl font-black uppercase mb-1 text-green-600";
+                tit.className = "text-3xl font-black uppercase mb-1 text-green-600";
                 playTone(600, 100); setTimeout(()=>playTone(800, 100), 100);
             } else if (type === 'warn') {
                 icon.innerText = '⚠️';
-                tit.className = "text-2xl font-black uppercase mb-1 text-yellow-500";
+                tit.className = "text-3xl font-black uppercase mb-1 text-yellow-500";
                 playTone(300, 300);
             } else {
                 icon.innerText = '⛔';
-                tit.className = "text-2xl font-black uppercase mb-1 text-red-600";
+                tit.className = "text-3xl font-black uppercase mb-1 text-red-600";
                 playTone(150, 400);
             }
-            tit.innerText = title;
         }
 
         window.nextScan = () => {
             document.getElementById('scan-popup').classList.add('hidden');
             isProcessing = false;
-            if(html5QrCode) html5QrCode.resume(); // Reanudar cámara
+            if(html5QrCode) html5QrCode.resume();
         };
 
         function playTone(freq, dur) {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                osc.type='sine'; osc.frequency.value=freq; osc.connect(ctx.destination);
-                osc.start(); setTimeout(()=>osc.stop(), dur);
+                const o = ctx.createOscillator();
+                o.type='sine'; o.frequency.value=freq; o.connect(ctx.destination);
+                o.start(); setTimeout(()=>o.stop(), dur);
             } catch(e){}
         }
 
-        // --- SUBIDA DE DATOS ---
+        // --- SUBIDA EXCEL ---
         window.searchTable = () => {
             const v = document.getElementById('search-box').value.toUpperCase();
             document.querySelectorAll('#table-body tr').forEach(r => r.style.display = r.innerText.toUpperCase().includes(v)?'':'none');
@@ -394,13 +412,12 @@
 
         window.uploadData = () => {
             const input = document.getElementById('fileInput');
-            if(!input.files[0]) return alert("Selecciona Acceso1.xlsx");
+            if(!input.files[0]) return alert("Selecciona archivo");
             const reader = new FileReader();
             reader.onload = async (e) => {
                 const data = new Uint8Array(e.target.result);
                 const wb = XLSX.read(data, {type:'array'});
                 const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                
                 const batch = writeBatch(db);
                 let c=0;
                 json.forEach(row => {
@@ -450,25 +467,16 @@
                 const tel = p.telefono || "";
                 const cant = p.cantidad || 1;
                 
-                // Tabla
-                let stClass = p.estado==='VALIDADO' ? 'text-green-600 font-bold bg-green-100 rounded px-1' : 'text-slate-400';
-                htmlT += `<tr>
-                    <td class="font-bold">${p._id}</td>
-                    <td>${p.nombre}</td>
-                    <td class="text-xs text-slate-500">${p.email}</td>
-                    <td class="text-xs">${tel}</td>
-                    <td class="text-center font-bold text-blue-600">${cant}</td>
-                    <td class="text-[10px]"><span class="${stClass}">${p.estado}</span></td>
-                </tr>`;
+                let stClass = p.estado==='VALIDADO' ? 'bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded' : 'text-slate-400';
+                htmlT += `<tr><td class="font-bold text-blue-600 font-mono">${p._id}</td><td>${p.nombre}</td><td class="text-xs text-slate-500">${p.email}</td><td class="text-xs font-mono">${tel}</td><td class="text-center font-bold">${cant}</td><td class="text-[10px] uppercase text-center"><span class="${stClass}">${p.estado}</span></td></tr>`;
 
-                // Listas
                 if(p.estado==='VALIDADO') {
                     dent++;
                     let time = p.hora_entrada ? p.hora_entrada.toDate().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : 'OK';
-                    htmlIn += `<div class="bg-white p-3 rounded border border-green-200 shadow-sm flex justify-between items-center"><div><div class="font-bold text-slate-800">${p.nombre}</div><div class="text-xs text-slate-400">ID: ${p._id} • ${cant} Entradas</div></div><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">${time}</span></div>`;
+                    htmlIn += `<div class="bg-white p-4 rounded-xl border border-green-200 shadow-sm flex justify-between items-center transition hover:shadow-md"><div><div class="font-bold text-slate-800">${p.nombre}</div><div class="text-xs text-slate-400 mt-0.5 font-mono">ID: ${p._id} • ${cant} Ent.</div></div><div class="text-right"><div class="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-bold">${time}</div></div></div>`;
                 } else {
-                    let btn = tel ? `<a href="tel:${tel}" class="w-9 h-9 flex items-center justify-center bg-slate-100 text-slate-600 rounded-full border border-slate-200"><i class="ph-fill ph-phone-call"></i></a>` : '';
-                    htmlOut += `<div class="bg-white p-3 rounded border border-slate-200 shadow-sm flex justify-between items-center"><div><div class="font-bold text-slate-800">${p.nombre}</div><div class="text-xs text-slate-400">${p.email} • ${cant} Entradas</div></div>${btn}</div>`;
+                    let btn = tel ? `<a href="tel:${tel}" class="w-10 h-10 flex items-center justify-center bg-slate-100 text-slate-600 rounded-full hover:bg-green-100 hover:text-green-600 transition"><i class="ph-bold ph-phone-call"></i></a>` : '';
+                    htmlOut += `<div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center transition hover:shadow-md"><div><div class="font-bold text-slate-800">${p.nombre}</div><div class="text-xs text-slate-400 mt-0.5">${p.email} • ${cant} Ent.</div></div>${btn}</div>`;
                 }
             });
 
@@ -476,8 +484,8 @@
             document.getElementById('num-dentro').innerText = dent;
             document.getElementById('num-faltan').innerText = total - dent;
             document.getElementById('table-body').innerHTML = htmlT;
-            document.getElementById('list-out').innerHTML = htmlOut || '<div class="p-4 text-center text-slate-400 text-xs">Lista vacía</div>';
-            document.getElementById('list-in').innerHTML = htmlIn || '<div class="p-4 text-center text-slate-400 text-xs">Nadie ha entrado aún</div>';
+            document.getElementById('list-out').innerHTML = htmlOut || '<div class="p-8 text-center text-slate-400 text-sm">Lista vacía</div>';
+            document.getElementById('list-in').innerHTML = htmlIn || '<div class="p-8 text-center text-slate-400 text-sm">Sin registros de entrada</div>';
         });
     </script>
 </body>
