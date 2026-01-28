@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EventPass v12 Ultra-Compact</title>
+    <title>EventPass v13 Premium UI</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -12,99 +12,108 @@
     
     <style>
         /* BASE */
-        body { background-color: #0f172a; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; overflow: hidden; }
+        body { background-color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; overflow: hidden; }
         .hide { display: none !important; }
-        .fade-in { animation: fadeIn 0.2s ease-out forwards; }
-        .slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
         /* SCROLLBARS */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 2px; }
 
-        /* ESTILOS DE TABLA (SOLO PC/ADMIN) */
+        /* ANIMACIONES */
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* POPUP ANIMATION (REBOTE) */
+        .pop-in { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* TABLAS ADMIN */
         .excel-table { width: 100%; border-collapse: collapse; font-size: 13px; font-family: monospace; background: white; } 
-        .excel-table th { background: #f8fafc; padding: 12px; text-align: left; position: sticky; top: 0; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0; z-index: 10; }
+        .excel-table th { background: #f1f5f9; padding: 12px; text-align: left; position: sticky; top: 0; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0; z-index: 10; }
         .excel-table td { border-bottom: 1px solid #f1f5f9; padding: 12px; color: #334155; }
 
         /* ESCÁNER UI */
         #reader { width: 100%; height: 100%; background: black; }
-        #reader video { object-fit: cover; width: 100% !important; height: 100% !important; border-radius: 0 0 20px 20px; }
+        #reader video { object-fit: cover; width: 100% !important; height: 100% !important; }
         
         .scan-laser {
             position: absolute; width: 100%; height: 2px; background: #ef4444;
-            box-shadow: 0 0 15px #ef4444; top: 10%; z-index: 20;
+            box-shadow: 0 0 20px #ef4444; top: 10%; z-index: 20;
             animation: scan 2s infinite ease-in-out;
         }
         @keyframes scan { 0% {top: 10%; opacity: 0;} 50% {top: 90%; opacity: 1;} 100% {top: 10%; opacity: 0;} }
     </style>
 </head>
-<body class="h-screen w-full flex flex-col text-slate-800 bg-slate-100">
+<body class="h-screen w-full flex flex-col text-slate-800 bg-slate-50">
 
-    <header class="bg-white border-b border-slate-200 px-3 py-2 flex justify-between items-center z-40 shrink-0 shadow-sm h-14">
+    <header class="bg-white border-b border-slate-200 px-4 py-2 flex justify-between items-center z-40 shrink-0 h-14 shadow-sm">
         <div class="flex items-center gap-2">
-            <div class="bg-blue-600 p-1.5 rounded text-white">
-                <i class="ph-bold ph-ticket text-base"></i>
+            <div class="bg-blue-600 p-1.5 rounded-lg text-white shadow-blue-200 shadow-md">
+                <i class="ph-bold ph-ticket text-lg"></i>
             </div>
             <div>
-                <h1 class="font-bold text-xs leading-none text-slate-800">EventPass</h1>
-                <span id="status-text" class="text-[9px] font-bold text-green-600 uppercase">ONLINE</span>
+                <h1 class="font-bold text-sm leading-none text-slate-800">EventPass</h1>
+                <span id="status-text" class="text-[9px] font-bold text-green-600 uppercase tracking-wide">● ONLINE</span>
             </div>
         </div>
         
-        <div class="bg-slate-100 p-1 rounded flex text-[10px] font-bold border border-slate-200">
-            <button onclick="window.setMode('admin')" id="nav-admin" class="px-3 py-1.5 rounded bg-white text-blue-700 shadow-sm transition-all">ADMIN</button>
-            <button onclick="window.setMode('scanner')" id="nav-scanner" class="px-3 py-1.5 rounded text-slate-400 transition-all">SCAN</button>
+        <div class="bg-slate-100 p-1 rounded-lg flex text-[10px] font-bold border border-slate-200">
+            <button onclick="window.setMode('admin')" id="nav-admin" class="px-3 py-1.5 rounded-md bg-white text-blue-700 shadow-sm transition-all">ADMIN</button>
+            <button onclick="window.setMode('scanner')" id="nav-scanner" class="px-3 py-1.5 rounded-md text-slate-400 transition-all">SCAN</button>
         </div>
     </header>
 
     <main class="flex-1 relative w-full overflow-hidden bg-white">
 
         <div id="view-admin" class="w-full h-full flex flex-col fade-in bg-slate-50">
-            <div class="flex border-b border-slate-200 bg-white px-2 shrink-0">
-                <button onclick="window.setTab('dashboard')" id="tab-dashboard" class="flex-1 py-3 text-[10px] font-bold text-blue-600 border-b-2 border-blue-600 uppercase">Resumen</button>
-                <button onclick="window.setTab('excel')" id="tab-excel" class="flex-1 py-3 text-[10px] font-bold text-slate-400 border-b-2 border-transparent uppercase">Datos</button>
-                <button onclick="window.setTab('listas')" id="tab-listas" class="flex-1 py-3 text-[10px] font-bold text-slate-400 border-b-2 border-transparent uppercase">Control</button>
+            <div class="flex border-b border-slate-200 bg-white px-2 shrink-0 shadow-sm z-10">
+                <button onclick="window.setTab('dashboard')" id="tab-dashboard" class="flex-1 py-3 text-[10px] font-bold text-blue-600 border-b-2 border-blue-600 uppercase transition-colors">Resumen</button>
+                <button onclick="window.setTab('excel')" id="tab-excel" class="flex-1 py-3 text-[10px] font-bold text-slate-400 border-b-2 border-transparent uppercase transition-colors">Datos</button>
+                <button onclick="window.setTab('listas')" id="tab-listas" class="flex-1 py-3 text-[10px] font-bold text-slate-400 border-b-2 border-transparent uppercase transition-colors">Control</button>
             </div>
 
             <div class="flex-1 overflow-y-auto p-4">
                 <div id="content-dashboard" class="space-y-4 max-w-lg mx-auto pt-2">
-                    <div class="grid grid-cols-3 gap-2">
-                        <div class="bg-white p-2 rounded border border-slate-200 text-center">
-                            <div class="text-[9px] text-slate-400 font-black uppercase">Total</div>
-                            <div id="num-total" class="text-xl font-black text-slate-800">0</div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 text-center shadow-sm">
+                            <div class="text-[9px] text-slate-400 font-black uppercase tracking-wider">Total</div>
+                            <div id="num-total" class="text-2xl font-black text-slate-800">0</div>
                         </div>
-                        <div class="bg-green-50 p-2 rounded border border-green-100 text-center">
-                            <div class="text-[9px] text-green-600 font-black uppercase">Dentro</div>
-                            <div id="num-dentro" class="text-xl font-black text-green-600">0</div>
+                        <div class="bg-white p-3 rounded-xl border border-green-200 text-center shadow-sm">
+                            <div class="text-[9px] text-green-600 font-black uppercase tracking-wider">Dentro</div>
+                            <div id="num-dentro" class="text-2xl font-black text-green-600">0</div>
                         </div>
-                        <div class="bg-red-50 p-2 rounded border border-red-100 text-center">
-                            <div class="text-[9px] text-red-500 font-black uppercase">Faltan</div>
-                            <div id="num-faltan" class="text-xl font-black text-red-500">0</div>
+                        <div class="bg-white p-3 rounded-xl border border-red-200 text-center shadow-sm">
+                            <div class="text-[9px] text-red-500 font-black uppercase tracking-wider">Faltan</div>
+                            <div id="num-faltan" class="text-2xl font-black text-red-500">0</div>
                         </div>
                     </div>
 
-                    <div class="bg-white border-2 border-dashed border-blue-200 rounded p-4 text-center">
+                    <div class="bg-white border-2 border-dashed border-blue-200 rounded-xl p-6 text-center hover:bg-blue-50 transition-colors cursor-pointer group">
                         <input type="file" id="fileInput" class="hidden" onchange="window.uploadData()" accept=".xlsx,.xls,.csv">
-                        <label for="fileInput" class="w-full block bg-blue-600 text-white font-bold py-3 rounded text-xs shadow-lg cursor-pointer">
-                            📂 CARGAR EXCEL
+                        <label for="fileInput" class="w-full block cursor-pointer">
+                            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                <i class="ph-bold ph-upload-simple text-2xl"></i>
+                            </div>
+                            <span class="text-blue-600 font-bold text-sm">CARGAR EXCEL</span>
+                            <p class="text-[10px] text-slate-400 mt-1">Acceso1.xlsx</p>
                         </label>
-                        <p class="text-[10px] text-slate-400 mt-2">Soporta .xlsx y .csv</p>
                     </div>
                     
-                    <button onclick="window.clearDb()" class="w-full text-center text-red-400 text-[10px] font-bold uppercase py-2">
-                        Borrar Todo
+                    <button onclick="window.clearDb()" class="w-full text-center text-red-400 text-[10px] font-bold uppercase py-4 hover:text-red-600 transition-colors">
+                        Borrar Base de Datos
                     </button>
                 </div>
 
                 <div id="content-excel" class="hide h-full flex flex-col">
-                    <input type="text" id="search-box" onkeyup="window.searchTable()" placeholder="🔍 Buscar..." class="w-full px-3 py-2 mb-2 rounded border border-slate-200 text-sm">
-                    <div class="flex-1 bg-white border border-slate-200 rounded overflow-hidden flex flex-col">
+                    <input type="text" id="search-box" onkeyup="window.searchTable()" placeholder="🔍 Buscar ID, Nombre..." class="w-full px-4 py-3 mb-3 rounded-xl border border-slate-200 text-sm shadow-sm outline-none focus:border-blue-500 transition-colors">
+                    <div class="flex-1 bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col shadow-sm">
                         <div class="overflow-auto flex-1">
                             <table class="excel-table">
-                                <thead><tr><th>ID</th><th>Nombre</th><th>Cant.</th><th>Estado</th></tr></thead>
+                                <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Tel</th><th>Cant.</th><th>Estado</th></tr></thead>
                                 <tbody id="table-body"></tbody>
                             </table>
                         </div>
@@ -112,9 +121,9 @@
                 </div>
 
                 <div id="content-listas" class="hide h-full flex flex-col">
-                    <div class="flex gap-2 mb-3">
-                        <button onclick="window.switchList('out')" id="btn-out" class="flex-1 py-2 rounded bg-white border border-slate-200 text-xs font-bold text-slate-800 shadow-sm">PENDIENTES</button>
-                        <button onclick="window.switchList('in')" id="btn-in" class="flex-1 py-2 rounded bg-slate-100 text-xs font-bold text-slate-400">DENTRO</button>
+                    <div class="flex gap-2 mb-3 bg-slate-100 p-1 rounded-xl">
+                        <button onclick="window.switchList('out')" id="btn-out" class="flex-1 py-2 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-800 shadow-sm transition-all">PENDIENTES</button>
+                        <button onclick="window.switchList('in')" id="btn-in" class="flex-1 py-2 rounded-lg text-xs font-bold text-slate-400 transition-all">DENTRO</button>
                     </div>
                     <div id="list-out" class="space-y-2 overflow-y-auto pb-10"></div>
                     <div id="list-in" class="space-y-2 overflow-y-auto pb-10 hidden"></div>
@@ -128,50 +137,68 @@
                 <div id="reader" class="w-full h-full object-cover"></div>
                 
                 <div id="cam-overlay" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-slate-900 p-6">
-                    <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4">
-                        <i class="ph-duotone ph-camera text-3xl text-blue-500"></i>
+                    <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-blue-500/10">
+                        <i class="ph-duotone ph-camera text-4xl text-blue-500"></i>
                     </div>
-                    <button onclick="window.startCamera()" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg text-sm active:scale-95 transition">
-                        ACTIVAR CÁMARA
+                    <button onclick="window.startCamera()" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-blue-500 active:scale-95 transition text-sm flex items-center gap-2">
+                        <i class="ph-bold ph-power"></i> ACTIVAR CÁMARA
                     </button>
                 </div>
 
                 <div id="scan-ui" class="absolute inset-0 hidden pointer-events-none z-10">
                     <div class="scan-laser"></div>
-                    <div class="absolute inset-0 border-[30px] border-slate-900/40"></div>
+                    <div class="absolute inset-0 border-[40px] border-slate-900/40"></div>
+                    <div class="absolute bottom-10 left-0 right-0 text-center text-white/70 text-xs font-mono tracking-widest">ENFOCA EL CÓDIGO QR</div>
                 </div>
             </div>
 
-            <div class="bg-slate-900 w-full p-4 pb-6 shrink-0 z-40 border-t border-slate-800 flex flex-col gap-3">
-                
+            <div class="bg-slate-900 w-full p-4 pb-8 shrink-0 z-30 border-t border-slate-800">
                 <div class="flex gap-2 w-full max-w-md mx-auto">
-                    <div class="flex-1 bg-slate-800 border border-slate-700 rounded-lg flex items-center px-3 h-12">
-                        <input type="text" id="manual-input" onkeypress="handleEnter(event)" placeholder="ESCRIBE EL ID..." class="bg-transparent border-none text-white text-base font-bold w-full h-full focus:outline-none placeholder-slate-500 uppercase font-mono tracking-widest text-center">
+                    <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl flex items-center px-4 h-14 shadow-lg focus-within:border-blue-500 transition-colors">
+                        <i class="ph-bold ph-keyboard text-slate-500 mr-3"></i>
+                        <input type="text" id="manual-input" onkeypress="handleEnter(event)" placeholder="ESCRIBE ID MANUAL..." class="bg-transparent border-none text-white text-base font-bold w-full h-full focus:outline-none placeholder-slate-600 uppercase font-mono tracking-widest">
                     </div>
-                    <button onclick="window.manualValidate()" class="bg-blue-600 text-white w-14 h-12 rounded-lg flex items-center justify-center shadow-lg active:bg-blue-500 transition">
+                    <button onclick="window.manualValidate()" class="bg-blue-600 hover:bg-blue-500 text-white w-16 h-14 rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition">
                         <i class="ph-bold ph-arrow-right text-xl"></i>
                     </button>
                 </div>
             </div>
 
-            <div id="scan-popup" class="hidden absolute top-1/2 left-4 right-4 transform -translate-y-1/2 bg-white rounded-xl shadow-2xl z-50 slide-up p-4 text-center max-w-sm mx-auto border-4 border-white">
+            <div id="popup-overlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6 fade-in">
                 
-                <div id="res-icon" class="text-5xl mb-2"></div>
-                
-                <h2 id="res-title" class="text-2xl font-black uppercase leading-none mb-1"></h2>
-                
-                <div class="bg-slate-50 rounded-lg p-3 my-3 border border-slate-100">
-                    <div id="res-name" class="font-bold text-lg text-slate-800 leading-tight break-words"></div>
-                    <div class="mt-1 flex justify-center gap-2">
-                         <span class="bg-slate-200 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded uppercase">Entradas: <span id="res-qty" class="text-slate-800 text-xs">1</span></span>
+                <div id="popup-card" class="bg-white w-full max-w-xs rounded-3xl shadow-2xl overflow-hidden pop-in relative">
+                    
+                    <div class="pt-8 pb-4 flex justify-center">
+                        <div id="res-icon" class="text-7xl drop-shadow-sm filter"></div>
+                    </div>
+
+                    <div class="text-center px-6 pb-6">
+                        <h2 id="res-title" class="text-2xl font-black uppercase leading-none mb-2 tracking-tight"></h2>
+                        <p id="res-msg" class="text-xs text-slate-400 font-medium mb-6 font-mono"></p>
+
+                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 text-left relative overflow-hidden">
+                            <i class="ph-duotone ph-user absolute -right-2 -bottom-2 text-6xl text-slate-200/50"></i>
+                            
+                            <div class="relative z-10">
+                                <div class="text-[10px] uppercase text-slate-400 font-bold mb-1 tracking-wider">Asistente</div>
+                                <div id="res-name" class="font-bold text-lg text-slate-800 leading-tight mb-3 line-clamp-2"></div>
+                                
+                                <div class="flex items-center gap-2">
+                                    <div class="bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm flex items-center gap-2">
+                                        <i class="ph-fill ph-ticket text-blue-500"></i>
+                                        <div class="text-xs font-bold text-slate-700">
+                                            <span id="res-qty" class="text-lg font-black text-blue-600">1</span> Entrada(s)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="window.nextScan()" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl shadow-lg mt-6 active:scale-95 transition flex items-center justify-center gap-2 text-sm tracking-wide">
+                            <span>SIGUIENTE</span> <i class="ph-bold ph-arrow-right"></i>
+                        </button>
                     </div>
                 </div>
-
-                <p id="res-msg" class="text-xs text-slate-400 mb-4 font-mono"></p>
-
-                <button onclick="window.nextScan()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-lg text-sm shadow-lg active:scale-95 transition">
-                    CONTINUAR
-                </button>
             </div>
 
         </div>
@@ -207,37 +234,39 @@
             if(mode === 'admin') {
                 adminV.classList.remove('hide');
                 scanV.classList.add('hide');
-                navA.className = "px-3 py-1.5 rounded bg-blue-600 text-white shadow-sm transition-all";
-                navS.className = "px-3 py-1.5 rounded text-slate-400 transition-all";
+                navA.className = "px-3 py-1.5 rounded-md bg-blue-600 text-white shadow-sm transition-all";
+                navS.className = "px-3 py-1.5 rounded-md text-slate-400 transition-all";
                 if(html5QrCode) stopCamera();
             } else {
                 adminV.classList.add('hide');
                 scanV.classList.remove('hide');
-                navS.className = "px-3 py-1.5 rounded bg-blue-600 text-white shadow-sm transition-all";
-                navA.className = "px-3 py-1.5 rounded text-slate-400 transition-all";
+                navS.className = "px-3 py-1.5 rounded-md bg-blue-600 text-white shadow-sm transition-all";
+                navA.className = "px-3 py-1.5 rounded-md text-slate-400 transition-all";
             }
         };
 
         window.setTab = (tab) => {
             ['dashboard', 'excel', 'listas'].forEach(t => {
                 document.getElementById('content-'+t).classList.add('hide');
-                document.getElementById('tab-'+t).className = "flex-1 py-3 text-[10px] font-bold text-slate-400 border-b-2 border-transparent uppercase";
+                const btn = document.getElementById('tab-'+t);
+                btn.className = "flex-1 py-3 text-[10px] font-bold text-slate-400 border-b-2 border-transparent uppercase transition-colors";
             });
             document.getElementById('content-'+tab).classList.remove('hide');
-            document.getElementById('tab-'+tab).className = "flex-1 py-3 text-[10px] font-bold text-blue-600 border-b-2 border-blue-600 uppercase";
+            const active = document.getElementById('tab-'+tab);
+            active.className = "flex-1 py-3 text-[10px] font-bold text-blue-600 border-b-2 border-blue-600 uppercase transition-colors";
         };
 
         window.switchList = (list) => {
             if(list === 'out') {
                 document.getElementById('list-out').classList.remove('hidden');
                 document.getElementById('list-in').classList.add('hidden');
-                document.getElementById('btn-out').className = "flex-1 py-2 rounded bg-white border border-slate-200 text-xs font-bold text-slate-800 shadow-sm";
-                document.getElementById('btn-in').className = "flex-1 py-2 rounded bg-slate-100 text-xs font-bold text-slate-400";
+                document.getElementById('btn-out').className = "flex-1 py-2 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-800 shadow-sm transition-all";
+                document.getElementById('btn-in').className = "flex-1 py-2 rounded-lg text-xs font-bold text-slate-400 transition-all";
             } else {
                 document.getElementById('list-in').classList.remove('hidden');
                 document.getElementById('list-out').classList.add('hidden');
-                document.getElementById('btn-in').className = "flex-1 py-2 rounded bg-white border border-green-200 text-xs font-bold text-green-700 shadow-sm";
-                document.getElementById('btn-out').className = "flex-1 py-2 rounded bg-slate-100 text-xs font-bold text-slate-400";
+                document.getElementById('btn-in').className = "flex-1 py-2 rounded-lg bg-white border border-green-200 text-xs font-bold text-green-700 shadow-sm transition-all";
+                document.getElementById('btn-out').className = "flex-1 py-2 rounded-lg text-xs font-bold text-slate-400 transition-all";
             }
         };
 
@@ -248,7 +277,7 @@
             document.getElementById('scan-ui').classList.remove('hidden');
 
             html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } }; // Aspect ratio auto
+            const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
             
             html5QrCode.start({ facingMode: "environment" }, config, procesarCodigo, (err) => {})
             .catch(() => {
@@ -271,7 +300,6 @@
             const input = document.getElementById('manual-input');
             const id = input.value.trim();
             if(!id) return;
-            // Ocultar teclado en móvil
             input.blur();
             procesarCodigo(id);
             input.value = "";
@@ -283,9 +311,10 @@
             if(html5QrCode) html5QrCode.pause();
 
             const id = String(decodedText).trim();
-            const popup = document.getElementById('scan-popup');
-            popup.classList.remove('hidden');
+            const overlay = document.getElementById('popup-overlay');
+            overlay.classList.remove('hidden');
 
+            // Estado Load
             updatePopup('load', 'BUSCANDO...', id, 'Consultando...', '-');
 
             try {
@@ -293,17 +322,17 @@
                 const snap = await getDoc(docRef);
 
                 if(!snap.exists()) {
-                    updatePopup('error', 'NO EXISTE', id, 'Código no válido', 0);
+                    updatePopup('error', 'NO EXISTE', id, 'ID desconocido', 0);
                 } else {
                     const data = snap.data();
                     const qty = data.cantidad || 1;
                     
                     if(data.estado === 'VALIDADO') {
-                        let h = data.hora_entrada ? data.hora_entrada.toDate().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
-                        updatePopup('warn', 'YA DENTRO', data.nombre, `Entró a las ${h}`, qty);
+                        let h = data.hora_entrada ? data.hora_entrada.toDate().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '?';
+                        updatePopup('warn', 'YA DENTRO', data.nombre, `Hora acceso: ${h}`, qty);
                     } else {
                         await updateDoc(docRef, { estado: 'VALIDADO', hora_entrada: serverTimestamp() });
-                        updatePopup('success', 'ADENTRO', data.nombre, 'Acceso Permitido', qty);
+                        updatePopup('success', 'ADENTRO', data.nombre, 'Acceso Autorizado', qty);
                     }
                 }
             } catch(e) {
@@ -315,42 +344,37 @@
         function updatePopup(type, title, name, info, qty) {
             const icon = document.getElementById('res-icon');
             const tit = document.getElementById('res-title');
-            const box = document.getElementById('scan-popup');
+            const msg = document.getElementById('res-msg');
             
             document.getElementById('res-name').innerText = name;
-            document.getElementById('res-msg').innerText = info;
             document.getElementById('res-qty').innerText = qty;
             tit.innerText = title;
+            msg.innerText = info;
 
-            // Reset borders
-            box.className = "absolute top-1/2 left-4 right-4 transform -translate-y-1/2 bg-white rounded-xl shadow-2xl z-50 slide-up p-5 text-center max-w-sm mx-auto border-4";
+            // Reset colores
+            tit.className = "text-2xl font-black uppercase leading-none mb-2 tracking-tight";
 
             if(type === 'load') {
                 icon.innerText = '⏳'; 
-                tit.className = "text-2xl font-black uppercase text-slate-400";
-                box.classList.add('border-slate-200');
+                tit.classList.add('text-slate-400');
             } else if(type === 'success') {
                 icon.innerText = '✅'; 
-                tit.className = "text-2xl font-black uppercase text-green-600";
-                box.classList.add('border-green-500');
+                tit.classList.add('text-green-600');
                 playTone(600, 100); setTimeout(()=>playTone(800, 100), 100);
             } else if (type === 'warn') {
                 icon.innerText = '⚠️'; 
-                tit.className = "text-2xl font-black uppercase text-yellow-500";
-                box.classList.add('border-yellow-400');
+                tit.classList.add('text-yellow-500');
                 playTone(300, 300);
             } else {
                 icon.innerText = '⛔'; 
-                tit.className = "text-2xl font-black uppercase text-red-600";
-                box.classList.add('border-red-500');
+                tit.classList.add('text-red-600');
                 playTone(150, 400);
             }
         }
 
         window.nextScan = () => {
-            document.getElementById('scan-popup').classList.add('hidden');
+            document.getElementById('popup-overlay').classList.add('hidden');
             isProcessing = false;
-            // Solo reanudar si estaba activo antes
             if(html5QrCode) html5QrCode.resume();
             document.getElementById('manual-input').focus();
         };
@@ -365,7 +389,7 @@
             } catch(e){}
         }
 
-        // --- SUBIDA EXCEL ---
+        // --- EXCEL ---
         window.searchTable = () => {
             const v = document.getElementById('search-box').value.toUpperCase();
             document.querySelectorAll('#table-body tr').forEach(r => r.style.display = r.innerText.toUpperCase().includes(v)?'':'none');
@@ -410,7 +434,7 @@
         };
         
         window.clearDb = async () => {
-            if(confirm("¿Estás seguro de BORRAR TODO?")) {
+            if(confirm("⚠ ¿Borrar TODA la base de datos?")) {
                 const q = await getDocs(colRef);
                 const b = writeBatch(db);
                 q.forEach(d=>b.delete(d.ref));
@@ -427,16 +451,20 @@
 
             docs.forEach(p => {
                 const cant = p.cantidad || 1;
-                let stClass = p.estado==='VALIDADO' ? 'text-green-600 font-bold' : 'text-slate-300';
+                const tel = p.telefono || "";
                 
-                htmlT += `<tr><td class="font-bold text-blue-600">${p._id}</td><td>${p.nombre}</td><td class="text-center font-bold">${cant}</td><td class="text-[10px] uppercase text-center"><span class="${stClass}">${p.estado.substring(0,4)}</span></td></tr>`;
+                // Tabla Excel
+                let stClass = p.estado==='VALIDADO' ? 'text-green-600 font-bold' : 'text-slate-300';
+                htmlT += `<tr><td class="font-bold text-blue-600 font-mono">${p._id}</td><td>${p.nombre}</td><td class="text-xs text-slate-500">${p.email}</td><td class="text-xs font-mono">${tel}</td><td class="text-center font-bold">${cant}</td><td class="text-[10px] uppercase text-center"><span class="${stClass}">${p.estado.substring(0,4)}</span></td></tr>`;
 
+                // Listas
                 if(p.estado==='VALIDADO') {
                     dent++;
                     let time = p.hora_entrada ? p.hora_entrada.toDate().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : 'OK';
-                    htmlIn += `<div class="bg-white p-2 rounded border border-green-200 flex justify-between items-center"><div><div class="font-bold text-slate-800 text-xs">${p.nombre}</div><div class="text-[9px] text-slate-400">ID: ${p._id}</div></div><div class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[9px] font-bold">${time}</div></div>`;
+                    htmlIn += `<div class="bg-white p-3 rounded-xl border border-green-200 shadow-sm flex justify-between items-center transition"><div><div class="font-bold text-slate-800 text-xs">${p.nombre}</div><div class="text-[10px] text-slate-400 mt-0.5">ID: ${p._id} • ${cant} Ent.</div></div><div class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[9px] font-bold">${time}</div></div>`;
                 } else {
-                    htmlOut += `<div class="bg-white p-2 rounded border border-slate-200 flex justify-between items-center"><div><div class="font-bold text-slate-800 text-xs">${p.nombre}</div><div class="text-[9px] text-slate-400">ID: ${p._id} • ${cant}pax</div></div></div>`;
+                    let btn = tel ? `<a href="tel:${tel}" class="w-8 h-8 flex items-center justify-center bg-slate-100 text-slate-500 rounded-full hover:bg-green-100 hover:text-green-600 transition"><i class="ph-bold ph-phone-call"></i></a>` : '';
+                    htmlOut += `<div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center transition"><div><div class="font-bold text-slate-800 text-xs">${p.nombre}</div><div class="text-[10px] text-slate-400 mt-0.5">${p.email} • ${cant} Ent.</div></div>${btn}</div>`;
                 }
             });
 
@@ -445,7 +473,7 @@
             document.getElementById('num-faltan').innerText = total - dent;
             document.getElementById('table-body').innerHTML = htmlT;
             document.getElementById('list-out').innerHTML = htmlOut || '<div class="text-center text-[10px] text-slate-400 py-4">Vacío</div>';
-            document.getElementById('list-in').innerHTML = htmlIn || '<div class="text-center text-[10px] text-slate-400 py-4">Nadie ha entrado</div>';
+            document.getElementById('list-in').innerHTML = htmlIn || '<div class="text-center text-[10px] text-slate-400 py-4">Nadie</div>';
         });
     </script>
 </body>
