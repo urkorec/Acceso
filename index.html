@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EventPass v13 Premium UI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>EventPass v14 Mobile Fix</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -11,8 +11,17 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <style>
-        /* BASE */
-        body { background-color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; overflow: hidden; }
+        /* BASE & ALTURA DINÁMICA (FIX MÓVIL) */
+        body { 
+            background-color: #0f172a; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+            overflow: hidden;
+            /* Aquí está el truco: dvh se adapta a las barras del móvil */
+            height: 100vh; 
+            height: 100dvh; 
+        }
+        
         .hide { display: none !important; }
         
         /* SCROLLBARS */
@@ -47,7 +56,7 @@
         @keyframes scan { 0% {top: 10%; opacity: 0;} 50% {top: 90%; opacity: 1;} 100% {top: 10%; opacity: 0;} }
     </style>
 </head>
-<body class="h-screen w-full flex flex-col text-slate-800 bg-slate-50">
+<body class="w-full flex flex-col text-slate-800 bg-slate-50">
 
     <header class="bg-white border-b border-slate-200 px-4 py-2 flex justify-between items-center z-40 shrink-0 h-14 shadow-sm">
         <div class="flex items-center gap-2">
@@ -66,7 +75,7 @@
         </div>
     </header>
 
-    <main class="flex-1 relative w-full overflow-hidden bg-white">
+    <main class="flex-1 relative w-full overflow-hidden bg-white h-full">
 
         <div id="view-admin" class="w-full h-full flex flex-col fade-in bg-slate-50">
             <div class="flex border-b border-slate-200 bg-white px-2 shrink-0 shadow-sm z-10">
@@ -133,7 +142,7 @@
 
         <div id="view-scanner" class="hide w-full h-full bg-slate-900 flex flex-col relative overflow-hidden">
             
-            <div class="relative w-full flex-1 bg-black overflow-hidden flex flex-col justify-center">
+            <div class="relative flex-1 bg-black overflow-hidden flex flex-col justify-center w-full">
                 <div id="reader" class="w-full h-full object-cover"></div>
                 
                 <div id="cam-overlay" class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-slate-900 p-6">
@@ -148,11 +157,11 @@
                 <div id="scan-ui" class="absolute inset-0 hidden pointer-events-none z-10">
                     <div class="scan-laser"></div>
                     <div class="absolute inset-0 border-[40px] border-slate-900/40"></div>
-                    <div class="absolute bottom-10 left-0 right-0 text-center text-white/70 text-xs font-mono tracking-widest">ENFOCA EL CÓDIGO QR</div>
+                    <div class="absolute bottom-4 left-0 right-0 text-center text-white/50 text-[10px] font-mono tracking-widest">ENFOCA EL CÓDIGO</div>
                 </div>
             </div>
 
-            <div class="bg-slate-900 w-full p-4 pb-8 shrink-0 z-30 border-t border-slate-800">
+            <div class="bg-slate-900 w-full p-4 pb-10 shrink-0 z-30 border-t border-slate-800 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
                 <div class="flex gap-2 w-full max-w-md mx-auto">
                     <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl flex items-center px-4 h-14 shadow-lg focus-within:border-blue-500 transition-colors">
                         <i class="ph-bold ph-keyboard text-slate-500 mr-3"></i>
@@ -165,7 +174,6 @@
             </div>
 
             <div id="popup-overlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6 fade-in">
-                
                 <div id="popup-card" class="bg-white w-full max-w-xs rounded-3xl shadow-2xl overflow-hidden pop-in relative">
                     
                     <div class="pt-8 pb-4 flex justify-center">
@@ -178,11 +186,9 @@
 
                         <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 text-left relative overflow-hidden">
                             <i class="ph-duotone ph-user absolute -right-2 -bottom-2 text-6xl text-slate-200/50"></i>
-                            
                             <div class="relative z-10">
                                 <div class="text-[10px] uppercase text-slate-400 font-bold mb-1 tracking-wider">Asistente</div>
                                 <div id="res-name" class="font-bold text-lg text-slate-800 leading-tight mb-3 line-clamp-2"></div>
-                                
                                 <div class="flex items-center gap-2">
                                     <div class="bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm flex items-center gap-2">
                                         <i class="ph-fill ph-ticket text-blue-500"></i>
@@ -314,7 +320,6 @@
             const overlay = document.getElementById('popup-overlay');
             overlay.classList.remove('hidden');
 
-            // Estado Load
             updatePopup('load', 'BUSCANDO...', id, 'Consultando...', '-');
 
             try {
@@ -351,7 +356,6 @@
             tit.innerText = title;
             msg.innerText = info;
 
-            // Reset colores
             tit.className = "text-2xl font-black uppercase leading-none mb-2 tracking-tight";
 
             if(type === 'load') {
@@ -453,11 +457,9 @@
                 const cant = p.cantidad || 1;
                 const tel = p.telefono || "";
                 
-                // Tabla Excel
                 let stClass = p.estado==='VALIDADO' ? 'text-green-600 font-bold' : 'text-slate-300';
                 htmlT += `<tr><td class="font-bold text-blue-600 font-mono">${p._id}</td><td>${p.nombre}</td><td class="text-xs text-slate-500">${p.email}</td><td class="text-xs font-mono">${tel}</td><td class="text-center font-bold">${cant}</td><td class="text-[10px] uppercase text-center"><span class="${stClass}">${p.estado.substring(0,4)}</span></td></tr>`;
 
-                // Listas
                 if(p.estado==='VALIDADO') {
                     dent++;
                     let time = p.hora_entrada ? p.hora_entrada.toDate().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : 'OK';
